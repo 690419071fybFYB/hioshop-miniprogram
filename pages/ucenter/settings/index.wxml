@@ -1,6 +1,6 @@
 <view class="container">
   <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-    <image class="avatar" src="{{root + avatarUrl}}"></image>
+    <image class="avatar" src="{{avatarDisplayUrl}}"></image>
   </button>
   <view class='edit-container'>
     <view class="a-item">

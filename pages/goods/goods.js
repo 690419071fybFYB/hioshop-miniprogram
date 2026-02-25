@@ -310,7 +310,7 @@ Page({
     },
     onShow: function() {
         let userInfo = wx.getStorageSync('userInfo');
-        let info = wx.getSystemInfoSync();
+        let info = util.getWindowInfo();
         let sysHeight = info.windowHeight - 100;
         let userId = userInfo.id;
         if (userId > 0) {

@@ -1,6 +1,6 @@
 <view class="container">
     <view class='logo'>
-        <image class='logo-img' src='/images/icon/loading.gif'></image>
+        <image class='logo-img' src='https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/loading.png'></image>
     </view>
     <view class='logo-name'>海风小店</view>
     <view class='intro'>开源微信小程序商城</view>

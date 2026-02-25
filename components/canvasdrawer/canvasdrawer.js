@@ -129,7 +129,8 @@ Component({
             this.ctx.draw(false, () => {
                 // console.log(this.cache);
                 wx.setStorageSync('canvasdrawer_pic_cache', this.cache)
-                const system = wx.getSystemInfoSync().system
+                const deviceInfo = typeof wx.getDeviceInfo === 'function' ? wx.getDeviceInfo() : {};
+                const system = deviceInfo.system || ''
                 if (/ios/i.test(system)) {
                     this.saveImageToLocal()
                 } else {

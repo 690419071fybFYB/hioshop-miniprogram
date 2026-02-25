@@ -6,7 +6,8 @@ Page({
     name: '',
     nickName: '',
     mobile: '',
-    avatarUrl: '/static/images/default_avatar.png',
+    avatarUrl: '/images/icon/default_avatar_big.png',
+    avatarDisplayUrl: '/images/icon/default_avatar_big.png',
     hasAvatar: 0,
     root: api.ApiRoot
   },
@@ -16,12 +17,16 @@ Page({
     } = e.detail
     this.setData({
       avatarUrl,
+      avatarDisplayUrl: util.normalizeImageUrl(avatarUrl, api.ApiRoot),
     })
     let that = this;
     wx.uploadFile({
       url: api.UploadAvatar,
       filePath: avatarUrl,
       name: 'upload_file',
+      header: {
+        'X-Hioshop-Token': wx.getStorageSync('token')
+      },
       formData: {
         // 'userId': 'test'
       },
@@ -31,8 +36,12 @@ Page({
           let echo = JSON.parse(re);
           let data = echo.data;
           let avatarUrl = data.fileUrl
+          const localUserInfo = wx.getStorageSync('userInfo') || {};
+          localUserInfo.avatar = avatarUrl;
+          wx.setStorageSync('userInfo', localUserInfo);
           that.setData({
             avatarUrl: avatarUrl,
+            avatarDisplayUrl: util.normalizeImageUrl(avatarUrl, api.ApiRoot),
             hasAvatar: 1
           })
         }
@@ -70,7 +79,12 @@ Page({
         if (res.data.avatar != '') {
           that.setData({
             avatarUrl: res.data.avatar,
+            avatarDisplayUrl: util.normalizeImageUrl(res.data.avatar, api.ApiRoot),
             hasAvatar: 1
+          })
+        } else {
+          that.setData({
+            avatarDisplayUrl: '/images/icon/default_avatar_big.png'
           })
         }
       }

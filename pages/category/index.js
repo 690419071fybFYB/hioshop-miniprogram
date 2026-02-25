@@ -41,14 +41,26 @@ Page({
         //CatalogList
         let that = this;
         util.request(api.CatalogList).then(function(res) {
-            that.setData({
-                navList: res.data.categoryList,
-            });
+            if (res.errno === 0 && res.data) {
+                that.setData({
+                    navList: res.data.categoryList || [],
+                });
+            } else {
+                that.setData({
+                    navList: [],
+                });
+            }
         });
         util.request(api.GoodsCount).then(function(res) {
-            that.setData({
-                goodsCount: res.data.goodsCount
-            });
+            if (res.errno === 0 && res.data) {
+                that.setData({
+                    goodsCount: res.data.goodsCount || 0
+                });
+            } else {
+                that.setData({
+                    goodsCount: 0
+                });
+            }
         });
     },
     getCurrentCategory: function(id) {

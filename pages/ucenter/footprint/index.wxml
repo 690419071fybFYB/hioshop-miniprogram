@@ -32,7 +32,7 @@
         </view>
     </view>
     <view wx:else class="no-print">
-        <image src="/images/icon/footprint.png" class="no-print-img"></image>
+        <image src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/footprint.png" class="no-print-img"></image>
         <view class="text">一个脚印都没有！</view>
         <view class="to-index-btn" bindtap="toIndexPage">
             马上去踩踩

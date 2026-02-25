@@ -4,7 +4,10 @@ const imageMode = ['scaleToFill', 'aspectFit', 'aspectFill', 'widthFix', 'top', 
 
 class Wxml2Canvas {
     constructor (options = {}) {
-        this.device = wx.getSystemInfoSync && wx.getSystemInfoSync() || {};
+        this.device = {
+            ...Util.getWindowInfo(),
+            ...Util.getDeviceInfo()
+        };
         
         if (!options.zoom) {
             this.zoom = this.device.windowWidth / 375;

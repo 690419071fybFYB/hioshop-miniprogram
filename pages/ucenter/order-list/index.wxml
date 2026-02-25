@@ -14,7 +14,7 @@
 
 	<view class="no-order {{hasOrder == 1? 'show':'' }}" hidden="" wx:if="{{orderList.length <= 0}}">
 		<!-- wx:if="{{orderList.length <= 0}}" -->
-		<image src="/images/icon/no-order.png" class="no-order-img"></image>
+		<image src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/no-order.png" class="no-order-img"></image>
 		<view class="text">您目前没有相关订单</view>
 		<view class="to-index-btn" bindtap="toIndexPage">
 			马上去逛逛

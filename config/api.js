@@ -1,4 +1,4 @@
-const ApiRoot = 'https://www.guxiaoling.com:8466';
+const ApiRoot = 'https://miracle-superficial-alyson.ngrok-free.dev';
 const ApiRootUrl = ApiRoot + '/api/'
 
 module.exports = {

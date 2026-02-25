@@ -5,7 +5,7 @@ App({
     deviceInfo: {}
   },
   onLaunch: function () {
-    this.data.deviceInfo = wx.getSystemInfoSync();
+    this.data.deviceInfo = util.getDeviceInfo();
     console.log(this.data.deviceInfo);
     // 展示本地存储能力
     var logs = wx.getStorageSync('logs') || []
@@ -25,22 +25,16 @@ App({
         });
       },
     });
-    let that = this;
-    wx.getSystemInfo({ //  获取页面的有关信息
-      success: function (res) {
-        wx.setStorageSync('systemInfo', res)
-        var ww = res.windowWidth;
-        var hh = res.windowHeight;
-        that.globalData.ww = ww;
-        that.globalData.hh = hh;
-      }
-    });
+    const windowInfo = util.getWindowInfo();
+    wx.setStorageSync('systemInfo', windowInfo);
+    this.globalData.ww = windowInfo.windowWidth;
+    this.globalData.hh = windowInfo.windowHeight;
   },
   globalData: {
     userInfo: {
       nickname: '点我登录',
       username: '点击登录',
-      avatar: 'http://lucky-icon.meiweiyuxian.com/hio/default_avatar_big.png'
+      avatar: 'https://lucky-icon.meiweiyuxian.com/hio/default_avatar_big.png'
     },
     token: '',
   }

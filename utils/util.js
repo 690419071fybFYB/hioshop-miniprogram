@@ -108,6 +108,18 @@ function request(url, data = {}, method = "GET") {
                         // })
                     } else {
                         const normalizedData = normalizeResponseImageFields(res.data, api.ApiRoot);
+                        // Keep response shape stable even when backend/ngrok returns non-JSON content.
+                        if (!normalizedData || typeof normalizedData !== 'object' || Array.isArray(normalizedData)) {
+                            resolve({
+                                errno: -1,
+                                errmsg: 'Invalid API response',
+                                data: {}
+                            });
+                            return;
+                        }
+                        if (!normalizedData.data || typeof normalizedData.data !== 'object' || Array.isArray(normalizedData.data)) {
+                            normalizedData.data = {};
+                        }
                         resolve(normalizedData);
                     }
                 } else {

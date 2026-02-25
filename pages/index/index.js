@@ -106,7 +106,7 @@ Page({
                 userInfo: userInfo,
             });
         };
-        let info = wx.getSystemInfoSync();
+        let info = util.getWindowInfo();
         let sysHeight = info.windowHeight - 100;
         this.setData({
             sysHeight: sysHeight,

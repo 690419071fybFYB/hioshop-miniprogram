@@ -11,7 +11,7 @@
         <view class='head-wrap' wx:else bindtap='goProfile'>
             <view class="head-l">
                 <view class='l'>
-                    <image class='avatar' src="{{root + userInfo.avatar}}"></image>
+                    <image class='avatar' src="{{avatarDisplayUrl}}"></image>
                 </view>
                 <view class='r'>
                     <view class='t'>
@@ -39,7 +39,7 @@
         <view class='btn-container'>
             <view class='icon-wrap' data-index='1' bindtap='toOrderListTap'>
                 <view class='order-icon-wrap'>
-                    <image class='order-icon' src='/images/icon/icon-pay-r.png'>
+                    <image class='order-icon' src='https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-pay-r.png'>
                     </image>
                     <view wx:if="{{status.toPay > 0 }}" class='red-point'>{{status.toPay}}</view>
                 </view>
@@ -47,7 +47,7 @@
             </view>
             <view class='icon-wrap' data-index='2' bindtap='toOrderListTap'>
                 <view class='order-icon-wrap'>
-                    <image class='order-icon' src='/images/icon/icon-delivery-r.png'>
+                    <image class='order-icon' src='https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-delivery-r.png'>
                     </image>
                     <view wx:if="{{status.toDelivery > 0 }}" class='red-point'>{{status.toDelivery}}</view>
                 </view>
@@ -55,7 +55,7 @@
             </view>
             <view class='icon-wrap' data-index='3' bindtap='toOrderListTap'>
                 <view class='order-icon-wrap'>
-                    <image class='order-icon' src='/images/icon/icon-onroad-r.png'>
+                    <image class='order-icon' src='https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-onroad-r.png'>
                     </image>
                     <view wx:if="{{status.toReceive > 0 }}" class='red-point'>{{status.toReceive}}</view>
                 </view>
@@ -67,7 +67,7 @@
         <view class="list" bindtap="toAddressList">
             <view class="list-l">
                 <view class="icon">
-                    <image class="img" src="/images/icon/icon-address-r.png"></image>
+                    <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-address-r.png"></image>
                 </view>
                 <view class="text">地址管理</view>
             </view>
@@ -78,7 +78,7 @@
         <view class="list" bindtap="toFootprint">
             <view class="list-l">
                 <view class="icon">
-                    <image class="img" src="/images/icon/icon-footprint-r.png"></image>
+                    <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-footprint-r.png"></image>
                 </view>
                 <view class="text">我的足迹</view>
             </view>
@@ -87,7 +87,7 @@
         <button class="contact-btn" session-from='{"nickName":"{{userInfo.nickname}}","avatarUrl":"{{userInfo.avatar}}"}' open-type="contact">
             <view class="list-l">
                 <view class="icon">
-                    <image class="img" src="/images/icon/icon-service-r.png"></image>
+                    <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-service-r.png"></image>
                 </view>
                 <view class="text">联系客服</view>
             </view>
@@ -96,7 +96,7 @@
         <view class="list" bindtap="toAbout">
             <view class="list-l">
                 <view class="icon">
-                    <image class="img" src="/images/icon/icon-about-r.png"></image>
+                    <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-about-r.png"></image>
                 </view>
                 <view class="text">关于我们</view>
             </view>

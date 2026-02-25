@@ -12,6 +12,7 @@ Page({
     hasUserInfo: false,
     status: {},
     root: api.ApiRoot,
+    avatarDisplayUrl: '/images/icon/default_avatar_big.png',
     is_new: 0,
     root: api.ApiRoot
   },
@@ -79,6 +80,7 @@ Page({
         that.setData({
           is_new: res.data.is_new,
           userInfo: userInfo,
+          avatarDisplayUrl: util.normalizeImageUrl(userInfo.avatar, api.ApiRoot),
           hasUserInfo: true
         })
         wx.setStorageSync('token', res.data.token);
@@ -103,6 +105,7 @@ Page({
         // wx.setStorageSync('userInfo', userInfo);
         that.setData({
           userInfo: userInfo,
+          avatarDisplayUrl: util.normalizeImageUrl(userInfo.avatar, api.ApiRoot),
           hasUserInfo: true
         });
       }

@@ -2,11 +2,11 @@
 	<!--   TODO 将状态码都去掉！  -->
 	<view class='status-wrap' bindtap='clearTimer'>
 		<view class='status-text'>
-			<image wx:if="{{textCode.pay == true}}" class='icon to-pay' src="/images/icon/to-pay-w.png"></image>
-			<image wx:elif="{{textCode.close == true}}" class='icon to-close' src="/images/icon/to-close-w.png"></image>
-			<image wx:elif="{{textCode.delivery == true}}" class='icon to-delivery' src="/images/icon/to-delivery-w.png"></image>
-			<image wx:elif="{{textCode.receive == true}}" class='icon to-receive' src="/images/icon/to-receive-w.png"></image>
-			<image wx:elif="{{textCode.success == true}}" class='icon to-success' src="/images/icon/success-w.png"></image>
+			<image wx:if="{{textCode.pay == true}}" class='icon to-pay' src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/to-pay-w.png"></image>
+			<image wx:elif="{{textCode.close == true}}" class='icon to-close' src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/to-close-w.png"></image>
+			<image wx:elif="{{textCode.delivery == true}}" class='icon to-delivery' src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/to-delivery-w.png"></image>
+			<image wx:elif="{{textCode.receive == true}}" class='icon to-receive' src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/to-receive-w.png"></image>
+			<image wx:elif="{{textCode.success == true}}" class='icon to-success' src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/success-w.png"></image>
 			<view class='text'>{{orderInfo.order_status_text}}</view>
 		</view>
 		<view wx:if="{{textCode.receive == true }}" class='count-wrap'>
@@ -37,7 +37,7 @@
 		</view>
 	</view>
 	<view class="onPosting" wx:if="{{orderInfo.shipping_status && onPosting == 0}}">
-		<image class='loading' src='/images/icon/loading.gif'></image>
+		<image class='loading' src='https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/loading.png'></image>
 		<view class='t'>快递信息查询中。。。</view>
 	</view>
 	<view wx:elif="{{orderInfo.shipping_status && onPosting == 1}}" class="express">
