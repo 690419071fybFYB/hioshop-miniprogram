@@ -107,7 +107,8 @@ function request(url, data = {}, method = "GET") {
                         //     reject(err);
                         // })
                     } else {
-                        resolve(res.data);
+                        const normalizedData = normalizeResponseImageFields(res.data, api.ApiRoot);
+                        resolve(normalizedData);
                     }
                 } else {
                     reject(res.errMsg);
@@ -363,6 +364,131 @@ function getUid(prefix) {
     );
 }
 
+function getWindowInfo() {
+    if (typeof wx.getWindowInfo === 'function') {
+        return wx.getWindowInfo();
+    }
+    if (typeof wx.getSystemInfoSync === 'function') {
+        try {
+            const systemInfo = wx.getSystemInfoSync() || {};
+            return {
+                windowWidth: systemInfo.windowWidth || systemInfo.screenWidth || 375,
+                windowHeight: systemInfo.windowHeight || systemInfo.screenHeight || 667
+            };
+        } catch (e) {}
+    }
+    return {
+        windowWidth: 375,
+        windowHeight: 667
+    };
+}
+
+function getDeviceInfo() {
+    if (typeof wx.getDeviceInfo === 'function') {
+        return wx.getDeviceInfo();
+    }
+    return {
+        system: '',
+        platform: ''
+    };
+}
+
+function normalizeImageUrl(url, root) {
+    const fallback = '/images/icon/default_avatar_big.png';
+    if (!url) return fallback;
+
+    let finalUrl = String(url).trim();
+    if (!finalUrl) return fallback;
+
+    if (finalUrl.startsWith('/images/')) return finalUrl;
+    if (finalUrl.startsWith('data:image') || finalUrl.startsWith('wxfile://')) return finalUrl;
+    if (finalUrl.startsWith('//')) finalUrl = 'https:' + finalUrl;
+
+    if (finalUrl.startsWith('/')) {
+        if (!root) return fallback;
+        const base = root.endsWith('/') ? root.slice(0, -1) : root;
+        finalUrl = base + finalUrl;
+    }
+
+    if (finalUrl.startsWith('http://')) {
+        if (/^http:\/\/(127\.0\.0\.1|localhost)/i.test(finalUrl)) {
+            return fallback;
+        }
+        finalUrl = finalUrl.replace(/^http:\/\//i, 'https://');
+    }
+
+    if (!/^https:\/\//i.test(finalUrl) && !finalUrl.startsWith('/')) {
+        return fallback;
+    }
+    return finalUrl;
+}
+
+function normalizeContentImageUrl(url, root) {
+    const fallback = '/images/icon/no-img.png';
+    if (!url) return fallback;
+
+    let finalUrl = String(url).trim();
+    if (!finalUrl) return fallback;
+
+    if (finalUrl.startsWith('/images/')) return finalUrl;
+    if (finalUrl.startsWith('data:image') || finalUrl.startsWith('wxfile://')) return finalUrl;
+    if (finalUrl.startsWith('//')) finalUrl = 'https:' + finalUrl;
+
+    if (finalUrl.startsWith('/')) {
+        if (!root) return fallback;
+        const base = root.endsWith('/') ? root.slice(0, -1) : root;
+        finalUrl = base + finalUrl;
+    }
+
+    if (finalUrl.startsWith('http://')) {
+        if (/^http:\/\/(127\.0\.0\.1|localhost)/i.test(finalUrl)) {
+            return fallback;
+        }
+        finalUrl = finalUrl.replace(/^http:\/\//i, 'https://');
+    }
+
+    if (!/^https:\/\//i.test(finalUrl) && !finalUrl.startsWith('/')) {
+        return fallback;
+    }
+    return finalUrl;
+}
+
+function normalizeResponseImageFields(payload, root) {
+    const imageLikeKeys = [
+        'image_url',
+        'list_pic_url',
+        'icon_url',
+        'img_url',
+        'banner',
+        'avatar',
+        'avatar_url',
+        'https_pic_url'
+    ];
+
+    if (Array.isArray(payload)) {
+        return payload.map((item) => normalizeResponseImageFields(item, root));
+    }
+
+    if (!payload || typeof payload !== 'object') {
+        return payload;
+    }
+
+    const next = {};
+    Object.keys(payload).forEach((key) => {
+        const value = payload[key];
+        if (typeof value === 'string' && imageLikeKeys.indexOf(key) >= 0) {
+            if (key === 'avatar' || key === 'avatar_url') {
+                next[key] = normalizeImageUrl(value, root);
+            } else {
+                next[key] = normalizeContentImageUrl(value, root);
+            }
+        } else {
+            next[key] = normalizeResponseImageFields(value, root);
+        }
+    });
+    return next;
+}
+
 
 module.exports = {
     formatTime: formatTime,
@@ -382,5 +508,10 @@ module.exports = {
     transferColor,
     transferPadding,
     transferBoxShadow,
-    getUid
+    getUid,
+    getWindowInfo,
+    getDeviceInfo,
+    normalizeImageUrl,
+    normalizeContentImageUrl,
+    normalizeResponseImageFields
 }
