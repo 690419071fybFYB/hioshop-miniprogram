@@ -1,4 +1,11 @@
-const ApiRoot = 'https://miracle-superficial-alyson.ngrok-free.dev';
+let isDevtools = false;
+try {
+  const sys = wx.getSystemInfoSync();
+  isDevtools = sys && sys.platform === 'devtools';
+} catch (e) {}
+
+// DevTools uses local docker API; real devices use production HTTPS domain.
+const ApiRoot = isDevtools ? 'http://127.0.0.1:8360' : 'https://api.fybshop.site';
 const ApiRootUrl = ApiRoot + '/api/'
 
 module.exports = {

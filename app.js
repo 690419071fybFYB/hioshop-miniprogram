@@ -22,6 +22,8 @@ App({
             wx.setStorageSync('token', res.data.token);
             wx.setStorageSync('userInfo', userInfo);
           }
+        }).catch(function () {
+          // Keep app boot stable even if login API is temporarily unavailable.
         });
       },
     });

@@ -94,6 +94,12 @@ Page({
                     })
                 }
             }
+        }).catch(function () {
+            // Avoid permanent loading spinner when request fails.
+            that.setData({
+                loading: 1,
+            });
+            util.showErrorToast('首页数据加载失败，请检查接口或网络');
         });
     },
 
@@ -129,6 +135,8 @@ Page({
                     index_banner_img: index_banner_img
                 });
             }
+        }).catch(function () {
+            util.showErrorToast('频道配置加载失败');
         });
     },
     onPullDownRefresh: function () {
