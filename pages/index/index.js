@@ -1,6 +1,7 @@
 const util = require('../../utils/util.js');
 const api = require('../../config/api.js');
 const user = require('../../services/user.js');
+const store = require('../../store/index.js');
 
 //获取应用实例
 const app = getApp()
@@ -20,6 +21,8 @@ Page({
         loading: 0,
         autoplay: true,
         showContact: 1,
+        hasError: false,
+        errorMessage: ''
     },
     onLoad: function (options) {
         this.getChannelShowInfo();
@@ -72,7 +75,7 @@ Page({
     },
     getIndexData: function () {
         let that = this;
-        util.request(api.IndexUrl).then(function (res) {
+        util.request(api.IndexUrl, {}, 'GET', { page: that }).then(function (res) {
             if (res.errno === 0) {
                 that.setData({
                     floorGoods: res.data.categoryList,
@@ -80,6 +83,8 @@ Page({
                     channel: res.data.channel,
                     notice: res.data.notice,
                     loading: 1,
+                    hasError: false,
+                    errorMessage: ''
                 });
                 let cartGoodsCount = '';
                 if (res.data.cartCount == 0) {
@@ -93,13 +98,18 @@ Page({
                         text: cartGoodsCount
                     })
                 }
+                store.patch({
+                    cartCount: Number(res.data.cartCount || 0)
+                });
             }
         }).catch(function () {
             // Avoid permanent loading spinner when request fails.
             that.setData({
                 loading: 1,
+                hasError: true,
+                errorMessage: '首页数据加载失败，请检查接口或网络'
             });
-            util.showErrorToast('首页数据加载失败，请检查接口或网络');
+            util.showErrorToast(that.data.errorMessage);
         });
     },
 
@@ -122,7 +132,7 @@ Page({
     },
     getChannelShowInfo: function (e) {
         let that = this;
-        util.request(api.ShowSettings).then(function (res) {
+        util.request(api.ShowSettings, {}, 'GET', { page: that }).then(function (res) {
             if (res.errno === 0) {
                 let show_channel = res.data.channel;
                 let show_banner = res.data.banner;
@@ -146,4 +156,11 @@ Page({
         wx.hideNavigationBarLoading() //完成停止加载
         wx.stopPullDownRefresh() //停止下拉刷新
     },
+    retryLoad: function () {
+        this.setData({
+            loading: 0
+        });
+        this.getIndexData();
+        this.getChannelShowInfo();
+    }
 })

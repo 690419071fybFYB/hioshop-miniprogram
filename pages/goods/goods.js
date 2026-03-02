@@ -4,6 +4,7 @@ var util = require('../../utils/util.js');
 var timer = require('../../utils/wxTimer.js');
 var api = require('../../config/api.js');
 const user = require('../../services/user.js');
+const store = require('../../store/index.js');
 Page({
     data: {
         id: 0,
@@ -28,7 +29,9 @@ Page({
         current: 0,
         showShareDialog:0,
         userInfo:{},
-        autoplay:true
+        autoplay:true,
+        hasError: false,
+        errorMessage: ''
     },
     hideDialog: function (e) {
         let that = this;
@@ -96,7 +99,7 @@ Page({
         let that = this;
         util.request(api.GoodsDetail, {
             id: that.data.id
-        }).then(function(res) {
+        }, 'GET', { page: that }).then(function(res) {
             if (res.errno === 0) {
                 let _specificationList = res.data.specificationList;
                 // 如果仅仅存在一种货品，那么商品页面初始化时默认checked
@@ -123,7 +126,9 @@ Page({
                     productList: res.data.productList,
                     checkedSpecPrice: res.data.info.retail_price,
                     galleryImages: galleryImages,
-                    loading:1
+                    loading:1,
+                    hasError: false,
+                    errorMessage: ''
                 });
                 setTimeout(() => {
                     WxParse.wxParse('goodsDetail', 'html', res.data.info.goods_desc, that);
@@ -133,6 +138,13 @@ Page({
             else{
                 util.showErrorToast(res.errmsg)
             }
+        }).catch(function() {
+            that.setData({
+                loading: 1,
+                hasError: true,
+                errorMessage: '商品详情加载失败'
+            });
+            util.showErrorToast('商品详情加载失败');
         });
     },
     clickSkuValue: function(event) {
@@ -333,12 +345,17 @@ Page({
     },
     getCartCount: function() {
         let that = this;
-        util.request(api.CartGoodsCount).then(function(res) {
+        util.request(api.CartGoodsCount, {}, 'GET', { page: that }).then(function(res) {
             if (res.errno === 0) {
                 that.setData({
                     cartGoodsCount: res.data.cartTotal.goodsCount
                 });
+                store.patch({
+                    cartCount: Number(res.data.cartTotal.goodsCount || 0)
+                });
             }
+        }).catch(function() {
+            util.showErrorToast('购物车数量加载失败');
         });
     },
     onPullDownRefresh: function() {
@@ -431,7 +448,7 @@ Page({
                     goodsId: this.data.id,
                     number: this.data.number,
                     productId: checkedProduct.id
-                }, "POST")
+                }, "POST", { page: that })
                 .then(function(res) {
                     let _res = res;
                     if (_res.errno == 0) {
@@ -448,6 +465,9 @@ Page({
                                 cartGoodsCount: _res.data.cartTotal.goodsCount
                             });
                         }
+                        store.patch({
+                            cartCount: Number(_res.data.cartTotal.goodsCount || 0)
+                        });
                     } else {
                         wx.showToast({
                             image: '/images/icon/icon_error.png',
@@ -513,7 +533,7 @@ Page({
                     goodsId: this.data.id,
                     number: this.data.number,
                     productId: checkedProduct.id,
-                }, "POST")
+                }, "POST", { page: that })
                 .then(function(res) {
                     let _res = res;
                     wx.hideLoading()
@@ -551,5 +571,13 @@ Page({
                 disabled: true
             });
         }
+    },
+    retryLoad: function() {
+        this.setData({
+            loading: 0,
+            hasError: false
+        });
+        this.getGoodsInfo();
+        this.getCartCount();
     }
 })

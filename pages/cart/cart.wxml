@@ -1,4 +1,8 @@
 <view class='container'>
+	<view wx:if="{{hasError}}" style="padding:16rpx 24rpx;background:#fff7f7;color:#d93025;font-size:24rpx;">
+		<text>{{errorMessage}}</text>
+		<button size="mini" bindtap="retryLoad" style="margin-left:16rpx;">重试</button>
+	</view>
 	<view class="goodsList" wx:if="{{cartGoods.length > 0}}">
 		<view class="a-goods {{item.isTouchMove ? 'touch-move-active' : ''}}" wx:for="{{cartGoods}}" wx:key="id" bindtouchstart="touchstart" bindtouchmove="touchmove" data-index="{{index}}">
 			<view class='content'>

@@ -1,4 +1,6 @@
 var api = require('../config/api.js');
+const requestSdk = require('./request/index.js');
+const session = require('./session.js');
 
 function formatTime(date) {
     var year = date.getFullYear()
@@ -63,10 +65,22 @@ function testMobile(num) {
     }
 }
 
-/**
- * 封封微信的的request
- */
-function request(url, data = {}, method = "GET") {
+function postProcessResponse(res) {
+    const normalizedData = normalizeResponseImageFields(res, api.ApiRoot);
+    if (!normalizedData || typeof normalizedData !== 'object' || Array.isArray(normalizedData)) {
+        return {
+            errno: -1,
+            errmsg: 'Invalid API response',
+            data: {}
+        };
+    }
+    if (!normalizedData.data || typeof normalizedData.data !== 'object' || Array.isArray(normalizedData.data)) {
+        normalizedData.data = {};
+    }
+    return normalizedData;
+}
+
+function legacyRequest(url, data = {}, method = "GET") {
     return new Promise(function(resolve, reject) {
         wx.request({
             url: url,
@@ -107,20 +121,7 @@ function request(url, data = {}, method = "GET") {
                         //     reject(err);
                         // })
                     } else {
-                        const normalizedData = normalizeResponseImageFields(res.data, api.ApiRoot);
-                        // Keep response shape stable even when backend/ngrok returns non-JSON content.
-                        if (!normalizedData || typeof normalizedData !== 'object' || Array.isArray(normalizedData)) {
-                            resolve({
-                                errno: -1,
-                                errmsg: 'Invalid API response',
-                                data: {}
-                            });
-                            return;
-                        }
-                        if (!normalizedData.data || typeof normalizedData.data !== 'object' || Array.isArray(normalizedData.data)) {
-                            normalizedData.data = {};
-                        }
-                        resolve(normalizedData);
+                        resolve(postProcessResponse(res.data));
                     }
                 } else {
                     reject(res.errMsg);
@@ -131,6 +132,34 @@ function request(url, data = {}, method = "GET") {
                 reject(err)
             }
         })
+    });
+}
+
+/**
+ * 封装微信 request。
+ * 当开启 features.newRequestSdk 时走新 SDK，可通过 feature 开关快速回滚。
+ */
+function request(url, data = {}, method = "GET", options = {}) {
+    if (!api.features || !api.features.newRequestSdk) {
+        return legacyRequest(url, data, method);
+    }
+    return requestSdk.request(url, data, method, options).then(function(res) {
+        return postProcessResponse(res);
+    }).catch(function(err) {
+        if (err && err.code === 'UNAUTHORIZED' && options.silent401 !== true) {
+            wx.showToast({
+                title: '登录状态已过期，请重新登录',
+                icon: 'none'
+            });
+            const pages = getCurrentPages();
+            const current = pages && pages.length ? pages[pages.length - 1] : null;
+            if (!current || current.route !== 'pages/ucenter/index/index') {
+                wx.switchTab({
+                    url: '/pages/ucenter/index/index'
+                });
+            }
+        }
+        return Promise.reject(err);
     });
 }
 
@@ -255,11 +284,12 @@ function loginNow() {
         success: (res) => {
           request(api.AuthLoginByWeixin, {
             code: res.code
-          }, 'POST').then(function (res) {
+          }, 'POST', { skipAuthRefresh: true }).then(function (res) {
             if (res.errno === 0) {
-              let userInfo = res.data.userInfo;
-              wx.setStorageSync('token', res.data.token);
-              wx.setStorageSync('userInfo', userInfo);
+              session.saveSession({
+                token: res.data.token,
+                userInfo: res.data.userInfo
+              });
             }
           });
         },

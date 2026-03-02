@@ -1,5 +1,6 @@
 var util = require('../../utils/util.js');
 var api = require('../../config/api.js');
+const store = require('../../store/index.js');
 const app = getApp()
 
 Page({
@@ -18,7 +19,9 @@ Page({
         isTouchMove: false,
         startX: 0, //开始坐标
         startY: 0,
-        hasCartGoods: 0
+        hasCartGoods: 0,
+        hasError: false,
+        errorMessage: ''
     },
     onLoad: function() {
     },
@@ -60,7 +63,7 @@ Page({
     },
     getCartList: function() {
         let that = this;
-        util.request(api.CartList).then(function(res) {
+        util.request(api.CartList, {}, 'GET', { page: that }).then(function(res) {
             if (res.errno === 0) {
                 let hasCartGoods = res.data.cartList;
                 if (hasCartGoods.length != 0) {
@@ -71,7 +74,9 @@ Page({
                 that.setData({
                     cartGoods: res.data.cartList,
                     cartTotal: res.data.cartTotal,
-                    hasCartGoods: hasCartGoods
+                    hasCartGoods: hasCartGoods,
+                    hasError: false,
+                    errorMessage: ''
                 });
                 if (res.data.cartTotal.numberChange == 1) {
                     util.showErrorToast('部分商品库存有变动');
@@ -80,6 +85,12 @@ Page({
             that.setData({
                 checkedAllStatus: that.isCheckedAll()
             });
+        }).catch(function () {
+            that.setData({
+                hasError: true,
+                errorMessage: '购物车加载失败'
+            });
+            util.showErrorToast('购物车加载失败');
         });
     },
     isCheckedAll: function() {
@@ -116,7 +127,7 @@ Page({
             util.request(api.CartChecked, {
                 productIds: productIds.join(','),
                 isChecked: that.isCheckedAll() ? 0 : 1
-            }, 'POST').then(function(res) {
+            }, 'POST', { page: that }).then(function(res) {
                 if (res.errno === 0) {
                     that.setData({
                         cartGoods: res.data.cartList,
@@ -153,7 +164,7 @@ Page({
             productId: productId,
             number: number,
             id: id
-        }, 'POST').then(function(res) {
+        }, 'POST', { page: that }).then(function(res) {
             if (res.errno === 0) {
                 that.setData({
                     cartGoods: res.data.cartList,
@@ -195,7 +206,7 @@ Page({
         this.updateCart(itemIndex, cartItem.product_id, number, cartItem.id);
     },
     getCartNum: function() {
-        util.request(api.CartGoodsCount).then(function(res) {
+        util.request(api.CartGoodsCount, {}, 'GET', { page: this }).then(function(res) {
             if (res.errno === 0) {
                 let cartGoodsCount = '';
                 if (res.data.cartTotal.goodsCount == 0) {
@@ -209,7 +220,12 @@ Page({
                         text: cartGoodsCount
                     })
                 }
+                store.patch({
+                    cartCount: Number(res.data.cartTotal.goodsCount || 0)
+                });
             }
+        }).catch(function () {
+            util.showErrorToast('购物车数量加载失败');
         });
     },
     checkoutOrder: function() {
@@ -248,7 +264,7 @@ Page({
             util.request(api.CartChecked, {
                 productIds: that.data.cartGoods[itemIndex].product_id,
                 isChecked: that.data.cartGoods[itemIndex].checked ? 0 : 1
-            }, 'POST').then(function(res) {
+            }, 'POST', { page: that }).then(function(res) {
                 if (res.errno === 0) {
                     that.setData({
                         cartGoods: res.data.cartList,
@@ -343,7 +359,7 @@ Page({
         let that = this;
         util.request(api.CartDelete, {
             productIds: productIds
-        }, 'POST').then(function(res) {
+        }, 'POST', { page: that }).then(function(res) {
             if (res.errno === 0) {
                 let cartList = res.data.cartList;
                 that.setData({
@@ -357,6 +373,13 @@ Page({
                 checkedAllStatus: that.isCheckedAll()
             });
         });
-
+    },
+    retryLoad: function() {
+        this.setData({
+            hasError: false,
+            errorMessage: ''
+        });
+        this.getCartList();
+        this.getCartNum();
     }
 })

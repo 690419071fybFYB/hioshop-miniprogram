@@ -17,12 +17,14 @@ Page({
         showNoMore: 0,
         loading:0,
         index_banner_img:0,
+        hasError: false,
+        errorMessage: ''
     },
     onLoad: function(options) {
     },
     getChannelShowInfo: function (e) {
         let that = this;
-        util.request(api.ShowSettings).then(function (res) {
+        util.request(api.ShowSettings, {}, 'GET', { page: that }).then(function (res) {
             if (res.errno === 0) {
                 let index_banner_img = res.data.index_banner_img;
                 that.setData({
@@ -40,18 +42,26 @@ Page({
     getCatalog: function() {
         //CatalogList
         let that = this;
-        util.request(api.CatalogList).then(function(res) {
+        util.request(api.CatalogList, {}, 'GET', { page: that }).then(function(res) {
             if (res.errno === 0 && res.data) {
                 that.setData({
                     navList: res.data.categoryList || [],
+                    hasError: false,
+                    errorMessage: ''
                 });
             } else {
                 that.setData({
                     navList: [],
                 });
             }
+        }).catch(function() {
+            that.setData({
+                hasError: true,
+                errorMessage: '分类列表加载失败'
+            });
+            util.showErrorToast('分类列表加载失败');
         });
-        util.request(api.GoodsCount).then(function(res) {
+        util.request(api.GoodsCount, {}, 'GET', { page: that }).then(function(res) {
             if (res.errno === 0 && res.data) {
                 that.setData({
                     goodsCount: res.data.goodsCount || 0
@@ -61,16 +71,20 @@ Page({
                     goodsCount: 0
                 });
             }
+        }).catch(function() {
+            util.showErrorToast('商品统计加载失败');
         });
     },
     getCurrentCategory: function(id) {
         let that = this;
         util.request(api.CatalogCurrent, {
             id: id
-        }).then(function(res) {
+        }, 'GET', { page: that }).then(function(res) {
             that.setData({
                 currentCategory: res.data
             });
+        }).catch(function() {
+            util.showErrorToast('当前分类加载失败');
         });
     },
     getCurrentList: function(id) {
@@ -79,7 +93,7 @@ Page({
             size: that.data.size,
             page: that.data.allPage,
             id: id
-        }, 'POST').then(function(res) {
+        }, 'POST', { page: that }).then(function(res) {
             if (res.errno === 0) {
                 let count = res.data.count;
                 that.setData({
@@ -96,6 +110,13 @@ Page({
                     });
                 }
             }
+        }).catch(function() {
+            that.setData({
+                loading: 0,
+                hasError: true,
+                errorMessage: '分类商品加载失败'
+            });
+            util.showErrorToast('分类商品加载失败');
         });
     },
     onShow: function() {
@@ -183,5 +204,15 @@ Page({
         } else {
             that.getCurrentList(nowId);
         }
+    },
+    retryLoad: function () {
+        this.setData({
+            list: [],
+            allPage: 1,
+            loading: 1,
+            hasError: false
+        });
+        this.getCatalog();
+        this.getCurrentList(this.data.nowId || 0);
     }
 })

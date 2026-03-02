@@ -97,3 +97,27 @@ A 增加发货时的订阅消息
 海风小店小程序商城4群 652317079    
 <img width="500" src="https://raw.githubusercontent.com/iamdarcy/hiolabs/master/git-images/contact.jpg"/>
 
+### 稳态升级（2026）
+
+本项目新增了可灰度的稳定性能力（不改技术栈）：
+
+- 统一请求 SDK：`utils/request/index.js`
+- 轻量全局状态：`store/index.js`
+- 会话统一管理：`utils/session.js`
+- 请求埋点日志：`utils/telemetry.js`
+
+开关配置在 `config/api.js`：
+
+```js
+features: {
+  newRequestSdk: true,
+  newStore: true,
+  telemetry: true
+}
+```
+
+发布后可用巡检脚本快速验证关键链路：
+
+```bash
+./scripts/smoke_check.sh https://api.fybshop.site qilelab.com qilelab.com
+```

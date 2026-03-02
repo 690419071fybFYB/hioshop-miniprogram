@@ -26,6 +26,8 @@ Page({
             },
         ],
         payMethod:1,
+        hasError: false,
+        errorMessage: ''
     },
     payChange(e){
         let val = e.detail.value;
@@ -119,7 +121,7 @@ Page({
             addType: addType,
             orderFrom: orderFrom,
             type: 0
-        }).then(function (res) {
+        }, 'GET', { page: that }).then(function (res) {
             if (res.errno === 0) {
                 let addressId = 0;
                 if (res.data.checkedAddress != 0) {
@@ -134,7 +136,9 @@ Page({
                     goodsTotalPrice: res.data.goodsTotalPrice,
                     orderTotalPrice: res.data.orderTotalPrice,
                     goodsCount: res.data.goodsCount,
-                    outStock: res.data.outStock
+                    outStock: res.data.outStock,
+                    hasError: false,
+                    errorMessage: ''
                 });
                 let goods = res.data.checkedGoodsList;
                 wx.setStorageSync('addressId', addressId);
@@ -144,6 +148,12 @@ Page({
                     util.showErrorToast('部分商品库存有变动');
                 }
             }
+        }).catch(function () {
+            that.setData({
+                hasError: true,
+                errorMessage: '结算信息加载失败'
+            });
+            util.showErrorToast('结算信息加载失败');
         });
     },
     // TODO 有个bug，用户没选择地址，支付无法继续进行，在切换过token的情况下
@@ -166,7 +176,7 @@ Page({
             freightPrice: freightPrice,
             actualPrice: actualPrice,
             offlinePay: 0
-        }, 'POST').then(res => {
+        }, 'POST', { page: this }).then(res => {
             if (res.errno === 0) {
                 wx.removeStorageSync('orderId');
                 wx.setStorageSync('addressId', 0);
@@ -201,7 +211,7 @@ Page({
             freightPrice: freightPrice,
             actualPrice: actualPrice,
             offlinePay: 1
-        }, 'POST').then(res => {
+        }, 'POST', { page: this }).then(res => {
             if (res.errno === 0) {
                 wx.removeStorageSync('orderId');
                 wx.setStorageSync('addressId', 0);
@@ -215,5 +225,12 @@ Page({
                 })
             }
         });
+    },
+    retryLoad: function () {
+        this.setData({
+            hasError: false,
+            errorMessage: ''
+        });
+        this.getCheckoutInfo();
     }
 })

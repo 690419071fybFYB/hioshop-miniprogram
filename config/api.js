@@ -7,9 +7,15 @@ try {
 // DevTools uses local docker API; real devices use production HTTPS domain.
 const ApiRoot = isDevtools ? 'http://127.0.0.1:8360' : 'https://api.fybshop.site';
 const ApiRootUrl = ApiRoot + '/api/'
+const features = {
+  newRequestSdk: true,
+  newStore: true,
+  telemetry: true
+};
 
 module.exports = {
   ApiRoot: ApiRoot,
+  features,
   // 登录
   AuthLoginByWeixin: ApiRootUrl + 'auth/loginByWeixin', //微信登录
   // 首页

@@ -1,4 +1,8 @@
 <view class="container" wx:if="{{loading == 1}}">
+    <view wx:if="{{hasError}}" style="padding:16rpx 24rpx;background:#fff7f7;color:#d93025;font-size:24rpx;">
+        <text>{{errorMessage}}</text>
+        <button size="mini" bindtap="retryLoad" style="margin-left:16rpx;">重试</button>
+    </view>
     <view class='contact-wrap' wx:if="{{showContact == 1}}">
         <button class="contact-btn" session-from='{"nickName":"{{userInfo.nickname}}","avatarUrl":"{{userInfo.avatar}}"}' open-type="contact">
             <image class='icon' src='/images/icon/contact.png'></image>

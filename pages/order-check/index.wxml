@@ -1,4 +1,8 @@
 <view class="container">
+	<view wx:if="{{hasError}}" style="padding:16rpx 24rpx;background:#fff7f7;color:#d93025;font-size:24rpx;">
+		<text>{{errorMessage}}</text>
+		<button size="mini" bindtap="retryLoad" style="margin-left:16rpx;">重试</button>
+	</view>
 	<view class='wrap'>
 		<view class="address-box">
 			<view class="receive-title">收件人</view>

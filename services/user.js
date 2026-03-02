@@ -3,6 +3,7 @@
  */
 const util = require('../utils/util.js');
 const api = require('../config/api.js');
+const session = require('../utils/session.js');
 /**
  * 调用微信登录
  */
@@ -17,11 +18,12 @@ function loginByWeixin() {
             util.request(api.AuthLoginByWeixin, {
                 code: code,
                 userInfo: userInfo
-            }, 'POST').then(res => {
+            }, 'POST', { skipAuthRefresh: true }).then(res => {
                 if (res.errno === 0) {
-                    //存储用户信息
-                    wx.setStorageSync('userInfo', res.data.userInfo);
-                    wx.setStorageSync('token', res.data.token);
+                    session.saveSession({
+                        token: res.data.token,
+                        userInfo: res.data.userInfo
+                    });
                     resolve(res);
                 } else {
                     reject(res);

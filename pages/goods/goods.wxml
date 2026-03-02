@@ -1,5 +1,9 @@
 <wxs module="filters" src="../../utils/fixed.wxs"></wxs>
 <view class="container" wx:if="{{loading == 1}}">
+    <view wx:if="{{hasError}}" style="padding:16rpx 24rpx;background:#fff7f7;color:#d93025;font-size:24rpx;">
+        <text>{{errorMessage}}</text>
+        <button size="mini" bindtap="retryLoad" style="margin-left:16rpx;">重试</button>
+    </view>
     <view class='banner-wrap'>
         <view class='current-item' wx:if="{{gallery.length > 0}}">
             <view class='in-item'>

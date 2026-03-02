@@ -1,6 +1,7 @@
 const util = require('../../utils/util.js');
 const api = require('../../config/api.js');
 const user = require('../../services/user.js');
+const session = require('../../utils/session.js');
 //获取应用实例
 const app = getApp()
 
@@ -70,10 +71,12 @@ Page({
   postLogin(info) {
     util.request(api.AuthLoginByWeixin, {
       info: info
-    }, 'POST').then(function (res) {
+    }, 'POST', { skipAuthRefresh: true }).then(function (res) {
       if (res.errno === 0) {
-        wx.setStorageSync('userInfo', res.data.userInfo);
-        wx.setStorageSync('token', res.data.token);
+        session.saveSession({
+          token: res.data.token,
+          userInfo: res.data.userInfo
+        });
         app.globalData.userInfo = res.data.userInfo;
         app.globalData.token = res.data.token;
         let is_new = res.data.is_new; //服务器返回的数据；

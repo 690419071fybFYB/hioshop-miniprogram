@@ -1,6 +1,7 @@
 var util = require('../../../utils/util.js');
 var api = require('../../../config/api.js');
 var user = require('../../../services/user.js');
+const session = require('../../../utils/session.js');
 
 // TODO 订单显示数量在图标上
 
@@ -74,7 +75,7 @@ Page({
     let that = this;
     util.request(api.AuthLoginByWeixin, {
       code: code
-    }, 'POST').then(function (res) {
+    }, 'POST', { skipAuthRefresh: true }).then(function (res) {
       if (res.errno === 0) {
         let userInfo = res.data.userInfo;
         that.setData({
@@ -83,8 +84,10 @@ Page({
           avatarDisplayUrl: util.normalizeImageUrl(userInfo.avatar, api.ApiRoot),
           hasUserInfo: true
         })
-        wx.setStorageSync('token', res.data.token);
-        wx.setStorageSync('userInfo', userInfo);
+        session.saveSession({
+          token: res.data.token,
+          userInfo
+        });
         app.globalData.token = res.data.token;
       }
     });
