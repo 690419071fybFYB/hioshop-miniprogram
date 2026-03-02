@@ -1,0 +1,23 @@
+page {
+  --brand-primary: #e74f72;
+  --brand-primary-strong: #cf3a5d;
+  --brand-accent: #ffd9e2;
+  --bg-page: #f7f8fb;
+  --bg-card: #ffffff;
+  --text-primary: #1f2533;
+  --text-secondary: #596273;
+  --text-muted: #8d96a7;
+  --border-color: #e7ebf3;
+  --danger: #d7413d;
+  --success: #1f9d5a;
+  --warning: #d48a19;
+  --radius-sm: 10rpx;
+  --radius-md: 16rpx;
+  --radius-lg: 24rpx;
+  --shadow-card: 0 8rpx 30rpx rgba(16, 30, 54, 0.06);
+  --space-1: 8rpx;
+  --space-2: 16rpx;
+  --space-3: 24rpx;
+  --space-4: 32rpx;
+  --space-5: 40rpx;
+}

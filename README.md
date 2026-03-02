@@ -121,3 +121,27 @@ features: {
 ```bash
 ./scripts/smoke_check.sh https://api.fybshop.site qilelab.com qilelab.com
 ```
+
+### UI V2（Vant Weapp）
+
+- 新增组件库依赖：`@vant/weapp`
+- 新增主题令牌：`styles/tokens.wxss`
+- 新增通用样式层：`styles/base.wxss`
+- 新增规范映射文档：`UI_KIT_MAPPING.md`
+
+本地启用步骤：
+
+```bash
+npm install
+```
+
+然后在微信开发者工具执行「工具 -> 构建 npm」。
+
+在 `config/api.js` 打开开关（灰度推荐）：
+
+```js
+features: {
+  newUiV2: true,
+  vantEnabled: true
+}
+```

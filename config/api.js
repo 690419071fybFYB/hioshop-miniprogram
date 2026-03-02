@@ -10,7 +10,9 @@ const ApiRootUrl = ApiRoot + '/api/'
 const features = {
   newRequestSdk: true,
   newStore: true,
-  telemetry: true
+  telemetry: true,
+  newUiV2: false,
+  vantEnabled: false
 };
 
 module.exports = {
@@ -18,6 +20,7 @@ module.exports = {
   features,
   // 登录
   AuthLoginByWeixin: ApiRootUrl + 'auth/loginByWeixin', //微信登录
+  AuthPhoneNumber: ApiRootUrl + 'auth/phoneNumber', // 微信授权手机号
   // 首页
   IndexUrl: ApiRootUrl + 'index/appInfo', //首页数据接口
   // 分类

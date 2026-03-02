@@ -2,6 +2,14 @@
   <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
     <image class="avatar" src="{{avatarDisplayUrl}}"></image>
   </button>
+  <view class="wechat-quick">
+    <button class="quick-btn profile" bindtap="useWechatProfile">微信一键填充头像昵称</button>
+    <button class="quick-btn phone" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber">微信授权手机号</button>
+    <view class="quick-status">
+      <text>头像昵称：{{profileAuthorized ? '已授权' : '未授权（可手填）'}}</text>
+      <text>手机号：{{phoneAuthorized ? '已授权' : '未授权（可手填）'}}</text>
+    </view>
+  </view>
   <view class='edit-container'>
     <view class="a-item">
       <image class="icon" src="/images/icon/nick.png"></image>

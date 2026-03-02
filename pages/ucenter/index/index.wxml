@@ -1,11 +1,12 @@
-<view class="container">
+<view class="container {{uiV2 ? 'ui-v2' : ''}}">
     <view class="userinfo">
         <view class='head-wrap' wx:if="{{hasUserInfo == false}}" bindtap='goAuth'>
             <view class="no-login-avatar">
                 <view class='no-avatar'>
                     <image class='avatar' src="/images/icon/default_avatar_big.png"></image>
                 </view>
-                <view class='btn-login'>点我登录</view>
+                <van-button wx:if="{{uiV2}}" class='btn-login-v2' round type="danger" color="linear-gradient(135deg,#e74f72,#cf3a5d)" size="small">点我登录</van-button>
+                <view wx:if="{{!uiV2}}" class='btn-login'>点我登录</view>
             </view>
         </view>
         <view class='head-wrap' wx:else bindtap='goProfile'>
@@ -24,8 +25,7 @@
             </view>
         </view>
     </view>
-    <!-- <ad unit-id="adunit-89ae0a0b6860dc9f" ad-type="grid" grid-opacity="0.8" grid-count="5" ad-theme="white"></ad> -->
-    <view class="order-container">
+    <view class="order-container {{uiV2 ? 'ui-card' : ''}}">
         <view class='header' data-index='0' bindtap='toOrderListTap'>
             <view class='top-title'>
                 <view class='left-line'></view>
@@ -39,70 +39,81 @@
         <view class='btn-container'>
             <view class='icon-wrap' data-index='1' bindtap='toOrderListTap'>
                 <view class='order-icon-wrap'>
-                    <image class='order-icon' src='https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-pay-r.png'>
-                    </image>
-                    <view wx:if="{{status.toPay > 0 }}" class='red-point'>{{status.toPay}}</view>
+                    <image class='order-icon' src='https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-pay-r.png'></image>
+                    <van-tag wx:if="{{uiV2 && status.toPay > 0}}" class='red-point-v2' type="danger" round>{{status.toPay}}</van-tag>
+                    <view wx:if="{{!uiV2 && status.toPay > 0 }}" class='red-point'>{{status.toPay}}</view>
                 </view>
                 <text class='order-txt'>待付款</text>
             </view>
             <view class='icon-wrap' data-index='2' bindtap='toOrderListTap'>
                 <view class='order-icon-wrap'>
-                    <image class='order-icon' src='https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-delivery-r.png'>
-                    </image>
-                    <view wx:if="{{status.toDelivery > 0 }}" class='red-point'>{{status.toDelivery}}</view>
+                    <image class='order-icon' src='https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-delivery-r.png'></image>
+                    <van-tag wx:if="{{uiV2 && status.toDelivery > 0}}" class='red-point-v2' type="danger" round>{{status.toDelivery}}</van-tag>
+                    <view wx:if="{{!uiV2 && status.toDelivery > 0 }}" class='red-point'>{{status.toDelivery}}</view>
                 </view>
                 <text class='order-txt'>待发货</text>
             </view>
             <view class='icon-wrap' data-index='3' bindtap='toOrderListTap'>
                 <view class='order-icon-wrap'>
-                    <image class='order-icon' src='https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-onroad-r.png'>
-                    </image>
-                    <view wx:if="{{status.toReceive > 0 }}" class='red-point'>{{status.toReceive}}</view>
+                    <image class='order-icon' src='https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-onroad-r.png'></image>
+                    <van-tag wx:if="{{uiV2 && status.toReceive > 0}}" class='red-point-v2' type="danger" round>{{status.toReceive}}</van-tag>
+                    <view wx:if="{{!uiV2 && status.toReceive > 0 }}" class='red-point'>{{status.toReceive}}</view>
                 </view>
                 <text class='order-txt'>待收货</text>
             </view>
         </view>
     </view>
-    <view class="li-wrap">
-        <view class="list" bindtap="toAddressList">
-            <view class="list-l">
-                <view class="icon">
-                    <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-address-r.png"></image>
+
+    <block wx:if="{{!uiV2}}">
+        <view class="li-wrap">
+            <view class="list" bindtap="toAddressList">
+                <view class="list-l">
+                    <view class="icon">
+                        <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-address-r.png"></image>
+                    </view>
+                    <view class="text">地址管理</view>
                 </view>
-                <view class="text">地址管理</view>
+                <view class="arrow"></view>
             </view>
-            <view class="arrow"></view>
         </view>
-    </view>
-    <view class="li-wrap">
-        <view class="list" bindtap="toFootprint">
-            <view class="list-l">
-                <view class="icon">
-                    <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-footprint-r.png"></image>
+        <view class="li-wrap">
+            <view class="list" bindtap="toFootprint">
+                <view class="list-l">
+                    <view class="icon">
+                        <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-footprint-r.png"></image>
+                    </view>
+                    <view class="text">我的足迹</view>
                 </view>
-                <view class="text">我的足迹</view>
+                <view class="arrow"></view>
             </view>
-            <view class="arrow"></view>
+            <button class="contact-btn" session-from='{"nickName":"{{userInfo.nickname}}","avatarUrl":"{{userInfo.avatar}}"}' open-type="contact">
+                <view class="list-l">
+                    <view class="icon">
+                        <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-service-r.png"></image>
+                    </view>
+                    <view class="text">联系客服</view>
+                </view>
+                <view class="arrow"></view>
+            </button>
+            <view class="list" bindtap="toAbout">
+                <view class="list-l">
+                    <view class="icon">
+                        <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-about-r.png"></image>
+                    </view>
+                    <view class="text">关于我们</view>
+                </view>
+                <view class="arrow"></view>
+            </view>
         </view>
-        <button class="contact-btn" session-from='{"nickName":"{{userInfo.nickname}}","avatarUrl":"{{userInfo.avatar}}"}' open-type="contact">
-            <view class="list-l">
-                <view class="icon">
-                    <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-service-r.png"></image>
-                </view>
-                <view class="text">联系客服</view>
-            </view>
-            <view class="arrow"></view>
-        </button>
-        <view class="list" bindtap="toAbout">
-            <view class="list-l">
-                <view class="icon">
-                    <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-about-r.png"></image>
-                </view>
-                <view class="text">关于我们</view>
-            </view>
-            <view class="arrow"></view>
-        </view>
-    </view>
+    </block>
+
+    <van-cell-group inset wx:if="{{uiV2}}">
+        <van-cell title="地址管理" is-link bindtap="toAddressList" />
+        <van-cell title="我的足迹" is-link bindtap="toFootprint" />
+        <button class="contact-btn-v2" session-from='{"nickName":"{{userInfo.nickname}}","avatarUrl":"{{userInfo.avatar}}"}' open-type="contact">联系客服</button>
+        <van-cell title="关于我们" is-link bindtap="toAbout" />
+    </van-cell-group>
+
     <view class="company">
         <view class="c-wrap" bindtap="getOrderInfo">
             <view class="text">海风小店</view>

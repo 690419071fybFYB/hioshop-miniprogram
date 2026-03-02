@@ -22,7 +22,9 @@ Page({
         autoplay: true,
         showContact: 1,
         hasError: false,
-        errorMessage: ''
+        errorMessage: '',
+        uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
+        vantEnabled: !!api.features.vantEnabled
     },
     onLoad: function (options) {
         this.getChannelShowInfo();

@@ -9,7 +9,58 @@ Page({
     avatarUrl: '/images/icon/default_avatar_big.png',
     avatarDisplayUrl: '/images/icon/default_avatar_big.png',
     hasAvatar: 0,
-    root: api.ApiRoot
+    root: api.ApiRoot,
+    profileAuthorized: false,
+    phoneAuthorized: false
+  },
+  useWechatProfile() {
+    let that = this;
+    wx.getUserProfile({
+      lang: 'zh_CN',
+      desc: '用于补全头像和昵称',
+      success(res) {
+        const user = res.userInfo || {};
+        const nickName = user.nickName || '';
+        const avatarUrl = user.avatarUrl || that.data.avatarUrl;
+        if (!nickName && !avatarUrl) {
+          util.showErrorToast('未获取到微信资料');
+          return;
+        }
+        that.setData({
+          nickName,
+          avatarUrl,
+          avatarDisplayUrl: util.normalizeImageUrl(avatarUrl, api.ApiRoot),
+          profileAuthorized: true
+        });
+        util.showSuccessToast('已自动填充微信昵称和头像');
+      },
+      fail() {
+        util.showErrorToast('你已取消微信资料授权，可继续手动填写');
+      }
+    });
+  },
+  onGetPhoneNumber(e) {
+    const detail = e.detail || {};
+    if (detail.errMsg !== 'getPhoneNumber:ok' || !detail.code) {
+      util.showErrorToast('未授权手机号，可继续手动填写');
+      return;
+    }
+    let that = this;
+    util.request(api.AuthPhoneNumber, {
+      code: detail.code
+    }, 'POST').then(function (res) {
+      if (res.errno === 0 && res.data && res.data.mobile) {
+        that.setData({
+          mobile: res.data.mobile,
+          phoneAuthorized: true
+        });
+        util.showSuccessToast('已自动填充微信手机号');
+      } else {
+        util.showErrorToast(res.errmsg || '获取手机号失败，请手动填写');
+      }
+    }).catch(function () {
+      util.showErrorToast('获取手机号失败，请手动填写');
+    });
   },
   onChooseAvatar(e) {
     const {
@@ -87,6 +138,10 @@ Page({
             avatarDisplayUrl: '/images/icon/default_avatar_big.png'
           })
         }
+        that.setData({
+          profileAuthorized: !!res.data.nickname,
+          phoneAuthorized: !!res.data.mobile
+        });
       }
     });
   },

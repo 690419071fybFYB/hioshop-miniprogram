@@ -1047,3 +1047,35 @@ button::after {
     height: 40rpx;
     line-height: 40rpx;
 }
+/* UI v2 */
+.ui-v2 .info-wrap,
+.ui-v2 .price-info,
+.ui-v2 .section-nav,
+.ui-v2 .details-wrap {
+  margin-left: 24rpx;
+  margin-right: 24rpx;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  background: #fff;
+}
+
+.ui-v2 .info-wrap,
+.ui-v2 .price-info,
+.ui-v2 .section-nav {
+  margin-top: 20rpx;
+}
+
+.ui-v2 .details-wrap {
+  margin-top: 24rpx;
+  padding-bottom: 8rpx;
+}
+
+.ui-v2 .cart-add-box {
+  padding-bottom: 24rpx;
+}
+
+.ui-v2 .to-cart-btn-v2,
+.ui-v2 .to-pay-btn-v2 {
+  width: 180rpx;
+  margin-left: 12rpx;
+}

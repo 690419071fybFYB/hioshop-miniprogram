@@ -1,5 +1,9 @@
-<view class='container'>
-	<view wx:if="{{hasError}}" style="padding:16rpx 24rpx;background:#fff7f7;color:#d93025;font-size:24rpx;">
+<view class='container {{uiV2 ? "ui-v2" : ""}}'>
+	<view class="ui-error-card" wx:if="{{hasError && uiV2}}">
+		<text class="ui-error-text">{{errorMessage}}</text>
+		<van-button size="small" type="danger" plain bindtap="retryLoad">重试</van-button>
+	</view>
+	<view wx:if="{{hasError && !uiV2}}" style="padding:16rpx 24rpx;background:#fff7f7;color:#d93025;font-size:24rpx;">
 		<text>{{errorMessage}}</text>
 		<button size="mini" bindtap="retryLoad" style="margin-left:16rpx;">重试</button>
 	</view>
@@ -37,7 +41,7 @@
 			</view>
 		</view>
 	</view>
-	<view class="cart-empty-container {{hasCartGoods == 0?'show':''}}">
+	<view class="cart-empty-container {{hasCartGoods == 0?'show':''}}" wx:if="{{!uiV2}}">
 		<view class='cart-empty-view'>
 			<image class='cart-empty' src='/images/icon/cart-empty.png'></image>
 		</view>
@@ -45,6 +49,11 @@
 		<view class="to-index-btn" bindtap="toIndexPage">
 			去逛逛
 		</view>
+	</view>
+	<view class="ui-empty-wrap" wx:if="{{uiV2 && hasCartGoods == 0}}">
+		<van-empty description="购物车空空如也">
+			<van-button round type="danger" size="small" color="linear-gradient(135deg,#e74f72,#cf3a5d)" bindtap="toIndexPage">去逛逛</van-button>
+		</van-empty>
 	</view>
 	<view class="settle-box" wx:if="{{cartGoods.length > 0}}">
 		<view class="left-price">
@@ -56,7 +65,8 @@
 			</view>
 			<view class="total" hidden="">合计：¥{{cartTotal.checkedGoodsAmount}}</view>
 		</view>
-		<view class="to-pay-btn" hidden="" bindtap="checkoutOrder">去结算</view>
+		<van-button wx:if="{{uiV2}}" class="to-pay-btn-v2" round type="danger" color="linear-gradient(135deg,#e74f72,#cf3a5d)" bindtap="checkoutOrder">去结算</van-button>
+		<view wx:if="{{!uiV2}}" class="to-pay-btn" hidden="" bindtap="checkoutOrder">去结算</view>
 		<!-- <view class="to-pay-btn" hidden="" bindtap="test">去结算</view>    -->
 	</view>
 </view>

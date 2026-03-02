@@ -15,7 +15,9 @@ Page({
     root: api.ApiRoot,
     avatarDisplayUrl: '/images/icon/default_avatar_big.png',
     is_new: 0,
-    root: api.ApiRoot
+    root: api.ApiRoot,
+    uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
+    vantEnabled: !!api.features.vantEnabled
   },
   goProfile: function (e) {
     let res = util.loginNow();

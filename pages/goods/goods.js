@@ -31,7 +31,9 @@ Page({
         userInfo:{},
         autoplay:true,
         hasError: false,
-        errorMessage: ''
+        errorMessage: '',
+        uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
+        vantEnabled: !!api.features.vantEnabled
     },
     hideDialog: function (e) {
         let that = this;

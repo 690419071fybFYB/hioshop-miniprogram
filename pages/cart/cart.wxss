@@ -381,3 +381,27 @@ button::after {
     float: left;
     margin-left: 20rpx;
 }
+
+/* UI v2 */
+.ui-v2 .goodsList {
+  padding: 0 24rpx 120rpx;
+  box-sizing: border-box;
+}
+
+.ui-v2 .a-goods {
+  margin-bottom: 20rpx;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  background: #fff;
+}
+
+.ui-v2 .settle-box {
+  background: #fff;
+  border-top: 1rpx solid var(--border-color);
+}
+
+.ui-v2 .to-pay-btn-v2 {
+  width: 200rpx;
+  margin-right: 20rpx;
+}

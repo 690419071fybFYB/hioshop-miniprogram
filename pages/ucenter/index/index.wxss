@@ -383,3 +383,44 @@ page {
     border-right: 4rpx solid #ccc;
     transform: rotate(45deg);
 }
+
+/* UI v2 */
+.ui-v2 .userinfo {
+  margin: 24rpx;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.ui-v2 .order-container {
+  margin-top: 0;
+}
+
+.ui-v2 .btn-login-v2 {
+  margin-top: 24rpx;
+}
+
+.ui-v2 .red-point-v2 {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+}
+
+.ui-v2 .contact-btn-v2 {
+  margin: 0 32rpx;
+  text-align: left;
+  padding: 26rpx 32rpx;
+  background: #fff;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  border-bottom: 1rpx solid var(--border-color);
+  box-sizing: border-box;
+}
+
+.ui-v2 .contact-btn-v2::after {
+  border: none;
+}
+
+.ui-v2 .company {
+  color: var(--text-muted);
+}

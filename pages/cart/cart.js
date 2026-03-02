@@ -21,7 +21,9 @@ Page({
         startY: 0,
         hasCartGoods: 0,
         hasError: false,
-        errorMessage: ''
+        errorMessage: '',
+        uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
+        vantEnabled: !!api.features.vantEnabled
     },
     onLoad: function() {
     },

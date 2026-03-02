@@ -1,0 +1,9 @@
+{
+  "name": "hioshop-miniprogram",
+  "version": "1.0.0",
+  "private": true,
+  "description": "hioshop wechat miniprogram ui upgrade",
+  "dependencies": {
+    "@vant/weapp": "^1.11.7"
+  }
+}

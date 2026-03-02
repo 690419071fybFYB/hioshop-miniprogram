@@ -393,3 +393,40 @@ page {
     height: 140rpx;
     width: 140rpx;
 }
+
+/* UI v2 */
+.ui-v2 .search {
+  margin: 20rpx 24rpx;
+  width: auto;
+  border-radius: 44rpx;
+  background: #fff;
+  box-shadow: var(--shadow-card);
+}
+
+.ui-v2 .catalog {
+  margin: 0 24rpx 24rpx;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  background: #fff;
+}
+
+.ui-v2 .nav {
+  background: #fafbfe;
+}
+
+.ui-v2 .goods-box {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.ui-v2 .new-tag {
+  position: absolute;
+  top: 12rpx;
+  left: 12rpx;
+}
+
+.ui-v2 .show-more,
+.ui-v2 .no-more {
+  color: var(--text-muted);
+}

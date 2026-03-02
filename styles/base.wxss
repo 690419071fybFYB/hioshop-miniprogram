@@ -1,0 +1,63 @@
+.ui-v2 {
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+.ui-v2 .ui-card {
+  margin: 0 var(--space-3) var(--space-3);
+  padding: var(--space-3);
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  box-sizing: border-box;
+}
+
+.ui-v2 .ui-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ui-v2 .ui-subtitle {
+  margin-top: var(--space-1);
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.ui-v2 .ui-error-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: var(--space-3);
+  padding: 20rpx 24rpx;
+  background: #fff3f2;
+  border: 1rpx solid #ffd0cc;
+  border-radius: var(--radius-md);
+  color: var(--danger);
+  box-sizing: border-box;
+}
+
+.ui-v2 .ui-error-text {
+  flex: 1;
+  font-size: 24rpx;
+  padding-right: var(--space-2);
+}
+
+.ui-v2 .ui-empty-wrap {
+  padding: 80rpx 0;
+}
+
+.ui-v2 .ui-loading-wrap {
+  height: 100%;
+  min-height: 520rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: var(--text-muted);
+}
+
+.ui-v2 .ui-loading-text {
+  margin-top: var(--space-2);
+  font-size: 24rpx;
+}
