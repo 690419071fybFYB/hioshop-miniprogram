@@ -192,7 +192,7 @@ Page({
     },
     selectRegionType(event) {
         let that = this;
-        let regionTypeIndex = event.target.dataset.regionTypeIndex;
+        let regionTypeIndex = event.currentTarget.dataset.regionTypeIndex;
         let selectRegionList = that.data.selectRegionList;
 
         //判断是否可点击
@@ -213,7 +213,7 @@ Page({
     },
     selectRegion(event) {
         let that = this;
-        let regionIndex = event.target.dataset.regionIndex;
+        let regionIndex = event.currentTarget.dataset.regionIndex;
         let regionItem = this.data.regionList[regionIndex];
         let regionType = regionItem.type;
         let selectRegionList = this.data.selectRegionList;
@@ -290,7 +290,7 @@ Page({
     cancelSelectRegion() {
         this.setData({
             openSelectRegion: false,
-            regionType: this.data.regionDoneStatus ? 3 : 1
+            regionType: this.data.selectRegionDone ? 3 : 1
         });
     },
     getRegionList(regionId) {

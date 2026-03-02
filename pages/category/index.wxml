@@ -18,7 +18,7 @@
             <view class="item {{ nowId == 0 ?'active' : ''}}" bindtap="switchCate" data-id="0">全部</view>
             <view class="item {{ nowId == item.id?'active' : ''}}" wx:for="{{navList}}" wx:key="id" data-id="{{item.id}}" bindtap="switchCate">{{item.name}}</view>
         </scroll-view>
-        <scroll-view class="cate" scroll-y="true" bindscrolltolower="onBottom">
+        <scroll-view class="cate" scroll-y="true" lower-threshold="120" bindscrolltolower="onBottom" bindscroll="onCateScroll">
             <block wx:if="{{loading == 0}}">
                 <view class='banner-container' wx:if="{{nowId!= 0 && index_banner_img == 1}}">
                     <image mode='aspectFill' style="width:100%;height:{{currentCategory.p_height}}rpx" src='{{currentCategory.img_url}}'>
@@ -52,7 +52,9 @@
                         </navigator>
                     </view>
                 </view>
-                <view class="show-more" bindtap="onBottom" wx:if="{{showNoMore == 1}}">加载更多</view>
+                <view class="show-more load-more-trigger" wx:if="{{showNoMore == 1}}">
+                    {{isLoadingMore ? '正在加载更多...' : '下滑到底自动加载更多'}}
+                </view>
                 <view class="no-more" wx:else>没有更多商品了</view>
                 <view class="ui-empty-wrap" wx:if="{{uiV2 && list.length == 0}}">
                     <van-empty description="暂无商品"></van-empty>
