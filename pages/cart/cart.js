@@ -189,10 +189,11 @@ Page({
     cutNumber: function(event) {
         let itemIndex = event.target.dataset.itemIndex;
         let cartItem = this.data.cartGoods[itemIndex];
-        if (cartItem.number - 1 == 0) {
-            util.showErrorToast('删除左滑试试')
+        if (Number(cartItem.number) <= 1) {
+            this.deleteCartItem(itemIndex);
+            return;
         }
-        let number = (cartItem.number - 1 > 1) ? cartItem.number - 1 : 1;
+        let number = Number(cartItem.number) - 1;
         this.setData({
             cartGoods: this.data.cartGoods,
         });
@@ -355,10 +356,16 @@ Page({
     },
     //删除事件
     deleteGoods: function(e) {
-        //获取已选择的商品
         let itemIndex = e.currentTarget.dataset.itemIndex;
+        this.deleteCartItem(itemIndex);
+    },
+    deleteCartItem: function(itemIndex) {
         let productIds = this.data.cartGoods[itemIndex].product_id;
         let that = this;
+        wx.showLoading({
+            title: '',
+            mask: true
+        });
         util.request(api.CartDelete, {
             productIds: productIds
         }, 'POST', { page: that }).then(function(res) {
@@ -374,6 +381,10 @@ Page({
             that.setData({
                 checkedAllStatus: that.isCheckedAll()
             });
+            wx.hideLoading();
+        }).catch(function() {
+            wx.hideLoading();
+            util.showErrorToast('删除失败，请稍后重试');
         });
     },
     retryLoad: function() {

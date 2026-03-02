@@ -30,6 +30,7 @@ Page({
         showShareDialog:0,
         userInfo:{},
         autoplay:true,
+        pendingCartAction: '',
         hasError: false,
         errorMessage: '',
         uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
@@ -136,6 +137,7 @@ Page({
                     WxParse.wxParse('goodsDetail', 'html', res.data.info.goods_desc, that);
                 }, 1000);
                 wx.setStorageSync('goodsImage', res.data.info.https_pic_url);
+                that.consumePendingCartAction();
             }
             else{
                 util.showErrorToast(res.errmsg)
@@ -324,21 +326,70 @@ Page({
     },
     onShow: function() {
         let userInfo = wx.getStorageSync('userInfo');
+        let token = wx.getStorageSync('token');
         let info = util.getWindowInfo();
         let sysHeight = info.windowHeight - 100;
-        let userId = userInfo.id;
-        if (userId > 0) {
+        let userId = userInfo && userInfo.id;
+        if (token && userId > 0) {
             this.setData({
                 userId: userId,
                 userInfo: userInfo,
             });
+        } else {
+            this.setData({
+                userId: 0,
+                userInfo: {}
+            });
         }
+        this.resumePendingCartAction();
         this.setData({
             priceChecked: false,
             sysHeight: sysHeight
         })
         this.getGoodsInfo();
         this.getCartCount();
+    },
+    isLoggedIn: function() {
+        const userInfo = wx.getStorageSync('userInfo');
+        const token = wx.getStorageSync('token');
+        return !!(token && userInfo && userInfo.id);
+    },
+    goLoginForCartAction: function(action) {
+        wx.setStorageSync('pendingCartAction', {
+            action: action,
+            goodsId: this.data.id,
+            ts: Date.now()
+        });
+        wx.navigateTo({
+            url: '/pages/app-auth/index'
+        });
+    },
+    resumePendingCartAction: function() {
+        const pending = wx.getStorageSync('pendingCartAction');
+        if (!pending || pending.goodsId != this.data.id) {
+            return;
+        }
+        if (!this.isLoggedIn()) {
+            return;
+        }
+        this.setData({
+            pendingCartAction: pending.action || ''
+        });
+        wx.removeStorageSync('pendingCartAction');
+    },
+    consumePendingCartAction: function() {
+        const action = this.data.pendingCartAction;
+        if (!action) {
+            return;
+        }
+        this.setData({
+            pendingCartAction: ''
+        });
+        if (action === 'addToCart') {
+            this.addToCart(true);
+        } else if (action === 'fastToCart') {
+            this.fastToCart(true);
+        }
     },
     onHide:function(){
         this.setData({
@@ -395,15 +446,13 @@ Page({
             showDialog: !this.data.showDialog
         });
     },
-    addToCart: function() {
-        // 判断是否登录，如果没有登录，则登录
-        util.loginNow();
-        var that = this;
-        let userInfo = wx.getStorageSync('userInfo');
-        let productLength = this.data.productList.length;
-        if (userInfo == '') {
+    addToCart: function(skipLoginCheck) {
+        if (!skipLoginCheck && !this.isLoggedIn()) {
+            this.goLoginForCartAction('addToCart');
             return false;
         }
+        var that = this;
+        let productLength = this.data.productList.length;
         if (this.data.openAttr == false && productLength != 1) {
             //打开规格选择窗口
             this.setData({
@@ -480,11 +529,9 @@ Page({
                 });
         }
     },
-    fastToCart: function() {
-        // 判断是否登录，如果没有登录，则登录
-        util.loginNow();
-        let userInfo = wx.getStorageSync('userInfo');
-        if (userInfo == '') {
+    fastToCart: function(skipLoginCheck) {
+        if (!skipLoginCheck && !this.isLoggedIn()) {
+            this.goLoginForCartAction('fastToCart');
             return false;
         }
         var that = this;
