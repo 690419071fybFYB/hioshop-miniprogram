@@ -9,6 +9,9 @@ const app = getApp()
 Page({
     data: {
         floorGoods: [],
+        couponList: [],
+        couponLoading: false,
+        couponNeedLogin: false,
         openAttr: false,
         showChannel: 0,
         showBanner: 0,
@@ -25,6 +28,86 @@ Page({
         errorMessage: '',
         uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
         vantEnabled: !!api.features.vantEnabled
+    },
+    formatCouponRule(coupon) {
+        if (!coupon) return '';
+        if (coupon.type === 'full_reduction') {
+            return `满${coupon.threshold_amount}减${coupon.reduce_amount}`;
+        }
+        return `满${coupon.threshold_amount}打${coupon.discount_rate}折`;
+    },
+    getCouponList: function () {
+        const that = this;
+        const token = wx.getStorageSync('token') || '';
+        if (!token) {
+            that.setData({
+                couponList: [],
+                couponLoading: false,
+                couponNeedLogin: true
+            });
+            return;
+        }
+        that.setData({ couponLoading: true });
+        util.request(api.CouponCenter, {}, 'GET', { page: that, silent401: true }).then(function (res) {
+            if (res.errno === 0) {
+                const list = (res.data || []).slice(0, 4).map((item) => ({
+                    ...item,
+                    ruleText: that.formatCouponRule(item),
+                    amountText: item.type === 'full_reduction' ? `${item.reduce_amount}元` : `${item.discount_rate}折`,
+                    limitText: Number(item.threshold_amount || 0) > 0 ? `满${item.threshold_amount}可用` : '无门槛'
+                }));
+                that.setData({
+                    couponList: list,
+                    couponNeedLogin: false
+                });
+                return;
+            }
+            that.setData({
+                couponList: [],
+                couponNeedLogin: false
+            });
+        }).catch(function () {
+            that.setData({
+                couponList: [],
+                couponNeedLogin: false
+            });
+        }).finally(function () {
+            that.setData({
+                couponLoading: false
+            });
+        });
+    },
+    goLoginForCoupon: function () {
+        wx.switchTab({
+            url: '/pages/ucenter/index/index'
+        });
+    },
+    toCouponCenter: function () {
+        wx.navigateTo({
+            url: '/pages/coupon-center/index'
+        });
+    },
+    receiveCouponFromHome: function (e) {
+        const couponId = Number(e.currentTarget.dataset.id || 0);
+        if (couponId <= 0) {
+            util.showErrorToast('优惠券参数错误');
+            return;
+        }
+        const that = this;
+        util.request(api.CouponReceive, { couponId }, 'POST', { page: that, silent401: true }).then(function (res) {
+            if (res.errno === 0) {
+                util.showSuccessToast('领取成功');
+                that.getCouponList();
+                return;
+            }
+            util.showErrorToast(res.errmsg || '领取失败');
+        }).catch(function (err) {
+            if (err && err.code === 'UNAUTHORIZED') {
+                util.showErrorToast('请先登录');
+                return;
+            }
+            util.showErrorToast((err && err.message) || '领取失败');
+        });
     },
     onLoad: function (options) {
         this.getChannelShowInfo();
@@ -117,6 +200,7 @@ Page({
 
     onShow: function () {
         this.getIndexData();
+        this.getCouponList();
         var that = this;
         let userInfo = wx.getStorageSync('userInfo');
         if (userInfo != '') {
@@ -154,6 +238,7 @@ Page({
     onPullDownRefresh: function () {
         wx.showNavigationBarLoading()
         this.getIndexData();
+        this.getCouponList();
         this.getChannelShowInfo();
         wx.hideNavigationBarLoading() //完成停止加载
         wx.stopPullDownRefresh() //停止下拉刷新

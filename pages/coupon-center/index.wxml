@@ -1,0 +1,29 @@
+<view class="container">
+  <view class="top-bar">
+    <view class="title">领券中心</view>
+    <view class="link" bindtap="toMyCoupons">我的优惠券</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <view wx:if="{{!loading && list.length === 0}}" class="empty">
+    暂无可领取优惠券
+  </view>
+
+  <view wx:for="{{list}}" wx:key="id" class="coupon-card">
+    <view class="left">
+      <view class="name">{{item.name}}</view>
+      <view class="rule" wx:if="{{item.type === 'full_reduction'}}">
+        满{{item.threshold_amount}}减{{item.reduce_amount}}
+      </view>
+      <view class="rule" wx:else>
+        满{{item.threshold_amount}}打{{item.discount_rate}}折，封顶{{item.discount_max_reduce}}
+      </view>
+      <view class="time">使用期：{{item.use_start_at_text}} - {{item.use_end_at_text}}</view>
+    </view>
+    <view class="right">
+      <button wx:if="{{!item.has_received}}" size="mini" type="primary" data-id="{{item.id}}" bindtap="receiveCoupon">立即领取</button>
+      <button wx:else size="mini" disabled>已领取</button>
+    </view>
+  </view>
+</view>

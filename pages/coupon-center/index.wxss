@@ -1,0 +1,61 @@
+.container {
+  padding: 24rpx;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.title {
+  font-size: 34rpx;
+  font-weight: 600;
+}
+
+.link {
+  color: #ff3456;
+  font-size: 26rpx;
+}
+
+.loading, .empty {
+  text-align: center;
+  padding: 48rpx 0;
+  color: #999;
+}
+
+.coupon-card {
+  display: flex;
+  justify-content: space-between;
+  padding: 20rpx;
+  border-radius: 16rpx;
+  background: #fff;
+  margin-bottom: 16rpx;
+}
+
+.left {
+  width: 74%;
+}
+
+.name {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 10rpx;
+}
+
+.rule {
+  color: #ff3456;
+  font-size: 28rpx;
+  margin-bottom: 8rpx;
+}
+
+.time {
+  color: #999;
+  font-size: 22rpx;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+}

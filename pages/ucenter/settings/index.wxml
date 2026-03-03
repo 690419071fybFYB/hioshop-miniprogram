@@ -3,10 +3,9 @@
     <image class="avatar" src="{{avatarDisplayUrl}}"></image>
   </button>
   <view class="wechat-quick">
-    <button class="quick-btn profile" bindtap="useWechatProfile">微信一键填充头像昵称</button>
     <button class="quick-btn phone" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber">微信授权手机号</button>
     <view class="quick-status">
-      <text>头像昵称：{{profileAuthorized ? '已授权' : '未授权（可手填）'}}</text>
+      <text>昵称可直接点击下方输入框选择微信昵称</text>
       <text>手机号：{{phoneAuthorized ? '已授权' : '未授权（可手填）'}}</text>
     </view>
   </view>
@@ -14,10 +13,6 @@
     <view class="a-item">
       <image class="icon" src="/images/icon/nick.png"></image>
       <input type="nickname" class="a-input" bindinput="bindinputNickName" bindblur="bindinputNickName" value="{{nickName}}" placeholder="请输入昵称" />
-    </view>
-    <view class="a-item">
-      <image class="icon" src="/images/icon/receiver.png"></image>
-      <input class='a-input' bindinput="bindinputName" bindblur="bindinputName" placeholder='请输入姓名' value="{{name}}"></input>
     </view>
     <view class="a-item">
       <image class="icon" src="/images/icon/mobile.png"></image>

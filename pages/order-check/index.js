@@ -9,8 +9,12 @@ Page({
         checkedAddress: {},
         goodsTotalPrice: 0.00, //商品总价
         freightPrice: 0.00, //快递费
+        couponPrice: 0.00, //优惠券抵扣
         orderTotalPrice: 0.00, //订单总价
         actualPrice: 0.00, //实际需要支付的总价
+        couponCandidates: [],
+        selectedCoupons: [],
+        selectedUserCouponIds: [],
         addressId: 0,
         goodsCount: 0,
         postscript: '',
@@ -88,8 +92,13 @@ Page({
             if (addressId == 0 || addressId == '') {
                 addressId = 0;
             }
+            let selectedUserCouponIds = wx.getStorageSync('selectedUserCouponIds') || [];
+            if (!Array.isArray(selectedUserCouponIds)) {
+                selectedUserCouponIds = [];
+            }
             this.setData({
-                'addressId': addressId
+                'addressId': addressId,
+                selectedUserCouponIds: selectedUserCouponIds
             });
         } catch (e) {}
         this.getCheckoutInfo();
@@ -116,23 +125,30 @@ Page({
         let addressId = that.data.addressId;
         let orderFrom = that.data.orderFrom;
         let addType = that.data.addType;
+        let selectedUserCouponIds = that.data.selectedUserCouponIds || [];
         util.request(api.CartCheckout, {
             addressId: addressId,
             addType: addType,
             orderFrom: orderFrom,
-            type: 0
+            type: 0,
+            selectedUserCouponIds: selectedUserCouponIds.join(',')
         }, 'GET', { page: that }).then(function (res) {
             if (res.errno === 0) {
                 let addressId = 0;
                 if (res.data.checkedAddress != 0) {
                     addressId = res.data.checkedAddress.id;
                 }
+                const nextSelectedIds = (res.data.selectedCoupons || []).map((item) => Number(item.user_coupon_id));
                 that.setData({
                     checkedGoodsList: res.data.checkedGoodsList,
                     checkedAddress: res.data.checkedAddress,
                     actualPrice: res.data.actualPrice,
                     addressId: addressId,
                     freightPrice: res.data.freightPrice,
+                    couponPrice: res.data.couponPrice || 0,
+                    couponCandidates: res.data.couponCandidates || [],
+                    selectedCoupons: res.data.selectedCoupons || [],
+                    selectedUserCouponIds: nextSelectedIds,
                     goodsTotalPrice: res.data.goodsTotalPrice,
                     orderTotalPrice: res.data.orderTotalPrice,
                     goodsCount: res.data.goodsCount,
@@ -142,10 +158,13 @@ Page({
                 });
                 let goods = res.data.checkedGoodsList;
                 wx.setStorageSync('addressId', addressId);
+                wx.setStorageSync('selectedUserCouponIds', nextSelectedIds);
                 if (res.data.outStock == 1) {
                     util.showErrorToast('有部分商品缺货或已下架');
                 } else if (res.data.numberChange == 1) {
                     util.showErrorToast('部分商品库存有变动');
+                } else if ((res.data.invalidSelectedIds || []).length > 0) {
+                    util.showErrorToast('部分优惠券不可用，已自动移除');
                 }
             }
         }).catch(function () {
@@ -154,6 +173,12 @@ Page({
                 errorMessage: '结算信息加载失败'
             });
             util.showErrorToast('结算信息加载失败');
+        });
+    },
+    goSelectCoupon: function () {
+        const selectedIds = this.data.selectedUserCouponIds || [];
+        wx.navigateTo({
+            url: `/pages/order-coupon/index?addType=${this.data.addType || 0}&orderFrom=${this.data.orderFrom || 0}&selectedIds=${selectedIds.join(',')}`
         });
     },
     // TODO 有个bug，用户没选择地址，支付无法继续进行，在切换过token的情况下
@@ -175,11 +200,13 @@ Page({
             postscript: postscript,
             freightPrice: freightPrice,
             actualPrice: actualPrice,
+            selectedUserCouponIds: (this.data.selectedUserCouponIds || []).join(','),
             offlinePay: 0
         }, 'POST', { page: this }).then(res => {
             if (res.errno === 0) {
                 wx.removeStorageSync('orderId');
                 wx.setStorageSync('addressId', 0);
+                wx.removeStorageSync('selectedUserCouponIds');
                 const orderId = res.data.orderInfo.id;
                 pay.payOrder(parseInt(orderId)).then(res => {
                     wx.redirectTo({
@@ -210,11 +237,13 @@ Page({
             postscript: postscript,
             freightPrice: freightPrice,
             actualPrice: actualPrice,
+            selectedUserCouponIds: (this.data.selectedUserCouponIds || []).join(','),
             offlinePay: 1
         }, 'POST', { page: this }).then(res => {
             if (res.errno === 0) {
                 wx.removeStorageSync('orderId');
                 wx.setStorageSync('addressId', 0);
+                wx.removeStorageSync('selectedUserCouponIds');
                 wx.redirectTo({
                     url: '/pages/payOffline/index?status=1',
                 })

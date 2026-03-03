@@ -1,11 +1,12 @@
-let isDevtools = false;
+let platform = '';
 try {
   const sys = wx.getSystemInfoSync();
-  isDevtools = sys && sys.platform === 'devtools';
+  platform = (sys && sys.platform) || '';
 } catch (e) {}
 
-// DevTools uses local docker API; real devices use production HTTPS domain.
-const ApiRoot = isDevtools ? 'http://127.0.0.1:8360' : 'https://api.fybshop.site';
+// Prefer local API on desktop/devtools environments; real devices keep production domain.
+const isRealDevice = platform === 'ios' || platform === 'android';
+const ApiRoot = isRealDevice ? 'https://api.fybshop.site' : 'http://127.0.0.1:8360';
 const ApiRootUrl = ApiRoot + '/api/'
 const features = {
   newRequestSdk: true,
@@ -58,6 +59,10 @@ module.exports = {
   OrderCountInfo: ApiRootUrl + 'order/orderCount', // 我的页面获取订单数状态
   OrderExpressInfo: ApiRootUrl + 'order/express', //物流信息
   OrderGoods: ApiRootUrl + 'order/orderGoods', // 获取checkout页面的商品列表
+  CouponCenter: ApiRootUrl + 'coupon/center', // 领券中心
+  CouponReceive: ApiRootUrl + 'coupon/receive', // 领取优惠券
+  CouponMy: ApiRootUrl + 'coupon/my', // 我的优惠券
+  CouponPreview: ApiRootUrl + 'coupon/preview', // 优惠券试算
   // 足迹
   FootprintList: ApiRootUrl + 'footprint/list', //足迹列表
   FootprintDelete: ApiRootUrl + 'footprint/delete', //删除足迹

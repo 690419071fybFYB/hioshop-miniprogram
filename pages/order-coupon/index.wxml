@@ -1,0 +1,31 @@
+<view class="container">
+  <view class="header">
+    <view class="title">选择优惠券</view>
+    <view class="clear" bindtap="clearSelection">清空</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+  <view wx:if="{{!loading && list.length === 0}}" class="empty">暂无可用优惠券</view>
+
+  <view
+    wx:for="{{list}}"
+    wx:key="user_coupon_id"
+    class="coupon-card {{selectedIds.indexOf(item.user_coupon_id) >= 0 ? 'selected' : ''}} {{item.disabled_reason ? 'disabled' : ''}}"
+    data-id="{{item.user_coupon_id}}"
+    bindtap="onToggleCoupon"
+  >
+    <view class="name">{{item.coupon_name}}</view>
+    <view class="rule" wx:if="{{item.coupon_type === 'full_reduction'}}">
+      满{{item.threshold_amount}}减{{item.reduce_amount}}
+    </view>
+    <view class="rule" wx:else>
+      满{{item.threshold_amount}}打{{item.discount_rate}}折，封顶{{item.discount_max_reduce}}
+    </view>
+    <view class="tips">预计优惠：¥{{item.estimated_discount}}</view>
+    <view class="tips" wx:if="{{item.disabled_reason}}">{{item.disabled_reason}}</view>
+  </view>
+
+  <view class="bottom">
+    <button type="primary" bindtap="confirmSelect">确认使用</button>
+  </view>
+</view>

@@ -1,13 +1,15 @@
 page {
-    height: 100%;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .container {
     background: #fafafa;
-    height: 100%;
+    height: 100vh;
     width: 100%;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .search {
@@ -46,18 +48,20 @@ page {
 }
 
 .catalog {
-    flex: 1;
+    flex: none;
+    height: calc(100vh - 100rpx);
     width: 100%;
     background: #fff;
     display: flex;
     border-top: 1px solid #fafafa;
-    /* position: fixed; */
-    margin-top: 90rpx;
+    margin-top: 100rpx;
+    overflow: hidden;
 }
 
 .catalog .nav {
     width: 162rpx;
     height: 100%;
+    flex-shrink: 0;
 }
 
 .catalog .nav .item {
@@ -79,6 +83,7 @@ page {
     flex: 1;
     height: 100%;
     padding: 0 24rpx 0 30rpx;
+    box-sizing: border-box;
 }
 
 .catalog .cate .show-more {
@@ -321,8 +326,27 @@ page {
 
 .goods-box .navi-url .goods-info .price-container .l .h {
     font-size: 28rpx;
-    font-weight: 500;
+    font-weight: 700;
+    color: #e53333;
+}
+
+.goods-box .navi-url .goods-info .price-container .l .promo-origin {
+    margin-top: 4rpx;
+    font-size: 20rpx;
+    color: #999;
+    text-decoration: line-through;
+}
+
+.goods-box .navi-url .goods-info .price-container .l .promo-tag {
+    margin-top: 6rpx;
+    display: inline-block;
+    padding: 0 8rpx;
+    line-height: 28rpx;
+    font-size: 18rpx;
     color: #ff3456;
+    background: #fff1f1;
+    border: 1rpx solid #ffd4d4;
+    border-radius: 6rpx;
 }
 
 .goods-box .navi-url .goods-info .price-container .l .b {

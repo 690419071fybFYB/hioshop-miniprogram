@@ -45,14 +45,16 @@
                                 <view class="goods-intro">{{item.goods_brief}}</view>
                                 <view class='price-container'>
                                     <view class='l'>
-                                        <view class='h'>￥{{item.min_retail_price}}</view>
+                                        <view class='h'>￥{{item.has_coupon_promo ? item.promo_price : item.min_retail_price}}</view>
+                                        <view class='promo-origin' wx:if="{{item.has_coupon_promo}}">￥{{item.original_price}}</view>
+                                        <view class='promo-tag' wx:if="{{item.has_coupon_promo && item.promo_tag}}">{{item.promo_tag}}</view>
                                     </view>
                                 </view>
                             </view>
                         </navigator>
                     </view>
                 </view>
-                <view class="show-more load-more-trigger" wx:if="{{showNoMore == 1}}">
+                <view class="show-more load-more-trigger" wx:if="{{showNoMore == 1}}" bindtap="onBottom">
                     {{isLoadingMore ? '正在加载更多...' : '下滑到底自动加载更多'}}
                 </view>
                 <view class="no-more" wx:else>没有更多商品了</view>

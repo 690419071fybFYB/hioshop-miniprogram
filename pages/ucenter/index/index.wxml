@@ -1,6 +1,6 @@
 <view class="container {{uiV2 ? 'ui-v2' : ''}}">
     <view class="userinfo">
-        <view class='head-wrap' wx:if="{{hasUserInfo == false}}" bindtap='goAuth'>
+        <view class='head-wrap' wx:if="{{hasUserInfo == false}}" bindtap='handleLoginTap'>
             <view class="no-login-avatar">
                 <view class='no-avatar'>
                     <image class='avatar' src="/images/icon/default_avatar_big.png"></image>
@@ -77,18 +77,36 @@
             </view>
         </view>
         <view class="li-wrap">
-            <view class="list" bindtap="toFootprint">
-                <view class="list-l">
-                    <view class="icon">
-                        <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-footprint-r.png"></image>
-                    </view>
-                    <view class="text">我的足迹</view>
+        <view class="list" bindtap="toFootprint">
+            <view class="list-l">
+                <view class="icon">
+                    <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-footprint-r.png"></image>
                 </view>
-                <view class="arrow"></view>
+                <view class="text">我的足迹</view>
             </view>
-            <button class="contact-btn" session-from='{"nickName":"{{userInfo.nickname}}","avatarUrl":"{{userInfo.avatar}}"}' open-type="contact">
-                <view class="list-l">
-                    <view class="icon">
+            <view class="arrow"></view>
+        </view>
+        <view class="list" bindtap="toCoupon">
+            <view class="list-l">
+                <view class="icon">
+                    <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-service-r.png"></image>
+                </view>
+                <view class="text">我的优惠券</view>
+            </view>
+            <view class="arrow"></view>
+        </view>
+        <view class="list" bindtap="toCouponCenter">
+            <view class="list-l">
+                <view class="icon">
+                    <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-address-r.png"></image>
+                </view>
+                <view class="text">领券中心</view>
+            </view>
+            <view class="arrow"></view>
+        </view>
+        <button class="contact-btn" session-from='{"nickName":"{{userInfo.nickname}}","avatarUrl":"{{userInfo.avatar}}"}' open-type="contact">
+            <view class="list-l">
+                <view class="icon">
                         <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/icon-service-r.png"></image>
                     </view>
                     <view class="text">联系客服</view>
@@ -110,6 +128,8 @@
     <van-cell-group inset wx:if="{{uiV2}}">
         <van-cell title="地址管理" is-link bindtap="toAddressList" />
         <van-cell title="我的足迹" is-link bindtap="toFootprint" />
+        <van-cell title="我的优惠券" is-link bindtap="toCoupon" />
+        <van-cell title="领券中心" is-link bindtap="toCouponCenter" />
         <button class="contact-btn-v2" session-from='{"nickName":"{{userInfo.nickname}}","avatarUrl":"{{userInfo.avatar}}"}' open-type="contact">联系客服</button>
         <van-cell title="关于我们" is-link bindtap="toAbout" />
     </van-cell-group>
@@ -121,4 +141,13 @@
         </view>
         <view class="tip">美妆好物 甄选优品</view>
     </view>
+
+    <login-profile-sheet
+      visible="{{showLoginProfileSheet}}"
+      initialProfile="{{userInfo}}"
+      requiredPhone="{{true}}"
+      requiredNickname="{{true}}"
+      bind:success="onProfileSheetSuccess"
+      bind:cancel="onProfileSheetCancel"
+    />
 </view>

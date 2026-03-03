@@ -1,6 +1,7 @@
 var util = require('../../../utils/util.js');
 var api = require('../../../config/api.js');
 var app = getApp();
+const DEFAULT_REGION_ROOT_ID = 1;
 Page({
     data: {
 
@@ -20,19 +21,19 @@ Page({
         selectRegionList: [{
                 id: 0,
                 name: '省份',
-                parent_id: 1,
+                parent_id: DEFAULT_REGION_ROOT_ID,
                 type: 1
             },
             {
                 id: 0,
                 name: '城市',
-                parent_id: 1,
+                parent_id: DEFAULT_REGION_ROOT_ID,
                 type: 2
             },
             {
                 id: 0,
                 name: '区县',
-                parent_id: 1,
+                parent_id: DEFAULT_REGION_ROOT_ID,
                 type: 3
             }
         ],
@@ -132,7 +133,7 @@ Page({
             let selectRegionList = this.data.selectRegionList;
             selectRegionList[0].id = address.province_id;
             selectRegionList[0].name = address.province_name;
-            selectRegionList[0].parent_id = 1;
+            selectRegionList[0].parent_id = DEFAULT_REGION_ROOT_ID;
 
             selectRegionList[1].id = address.city_id;
             selectRegionList[1].name = address.city_name;
@@ -153,25 +154,25 @@ Page({
                 selectRegionList: [{
                         id: 0,
                         name: '省份',
-                        parent_id: 1,
+                        parent_id: DEFAULT_REGION_ROOT_ID,
                         type: 1
                     },
                     {
                         id: 0,
                         name: '城市',
-                        parent_id: 1,
+                        parent_id: DEFAULT_REGION_ROOT_ID,
                         type: 2
                     },
                     {
                         id: 0,
                         name: '区县',
-                        parent_id: 1,
+                        parent_id: DEFAULT_REGION_ROOT_ID,
                         type: 3
                     }
                 ],
                 regionType: 1
             })
-            this.getRegionList(1);
+            this.getRegionList(DEFAULT_REGION_ROOT_ID);
         }
 
         this.setRegionDoneStatus();
@@ -179,13 +180,14 @@ Page({
     },
     onLoad: function(options) {
         // 页面初始化 options为页面跳转所带来的参数
-        if (options.id) {
+        const parsedAddressId = Number(options.id);
+        if (!Number.isNaN(parsedAddressId) && parsedAddressId > 0) {
             this.setData({
-                addressId: options.id
+                addressId: parsedAddressId
             });
             this.getAddressDetail();
         }
-        this.getRegionList(1);
+        this.getRegionList(DEFAULT_REGION_ROOT_ID);
     },
     onReady: function() {
 
@@ -215,7 +217,10 @@ Page({
         let that = this;
         let regionIndex = event.currentTarget.dataset.regionIndex;
         let regionItem = this.data.regionList[regionIndex];
-        let regionType = regionItem.type;
+        if (!regionItem) {
+            return false;
+        }
+        let regionType = Number(regionItem.type);
         let selectRegionList = this.data.selectRegionList;
         selectRegionList[regionType - 1] = regionItem;
 
@@ -293,27 +298,53 @@ Page({
             regionType: this.data.selectRegionDone ? 3 : 1
         });
     },
-    getRegionList(regionId) {
+    async getRegionList(regionId) {
         let that = this;
-        let regionType = that.data.regionType;
-        util.request(api.RegionList, {
-            parentId: regionId
-        }).then(function(res) {
-            if (res.errno === 0) {
-                that.setData({
-                    regionList: res.data.map(item => {
+        const regionType = Number(that.data.regionType || 1);
+        let regionList = [];
 
-                        //标记已选择的
-                        if (regionType == item.type && that.data.selectRegionList[regionType - 1].id == item.id) {
-                            item.selected = true;
-                        } else {
-                            item.selected = false;
-                        }
-
-                        return item;
-                    })
-                });
+        try {
+            const res = await util.request(api.RegionList, {
+                parentId: regionId
+            });
+            if (res.errno === 0 && Array.isArray(res.data)) {
+                regionList = res.data;
             }
+        } catch (err) {
+            // ignore and fallback below
+        }
+
+        // 兼容不同后端参数命名与根节点 parent_id 差异
+        if (regionList.length === 0) {
+            try {
+                const fallbackQuery = Number(regionId) === DEFAULT_REGION_ROOT_ID ? {
+                    parentId: 0
+                } : {
+                    parent_id: regionId
+                };
+                const fallbackRes = await util.request(api.RegionList, fallbackQuery);
+                if (fallbackRes.errno === 0 && Array.isArray(fallbackRes.data)) {
+                    regionList = fallbackRes.data;
+                }
+            } catch (err) {
+                // noop
+            }
+        }
+
+        if (regionList.length === 0) {
+            that.setData({
+                regionList: []
+            });
+            util.showErrorToast('省市区加载失败，请稍后重试');
+            return;
+        }
+
+        that.setData({
+            regionList: regionList.map(item => {
+                const itemType = Number(item.type || 0);
+                item.selected = itemType === regionType && that.data.selectRegionList[regionType - 1].id == item.id;
+                return item;
+            })
         });
     },
     saveAddress() {

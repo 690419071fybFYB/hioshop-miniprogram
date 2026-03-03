@@ -107,6 +107,7 @@ async function refreshTokenByWeixin() {
 function clearSession() {
   wx.removeStorageSync('token');
   wx.removeStorageSync('userInfo');
+  wx.removeStorageSync('profileCompleted');
   if (useStore()) {
     store.patch({
       session: {

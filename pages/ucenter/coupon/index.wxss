@@ -1,0 +1,51 @@
+.container {
+  padding: 24rpx;
+}
+
+.tab-bar {
+  display: flex;
+  background: #fff;
+  border-radius: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  line-height: 72rpx;
+  color: #666;
+}
+
+.tab-item.active {
+  color: #ff3456;
+  font-weight: 600;
+}
+
+.loading, .empty {
+  text-align: center;
+  padding: 48rpx 0;
+  color: #999;
+}
+
+.coupon-card {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 12rpx;
+}
+
+.name {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+
+.rule {
+  color: #ff3456;
+  margin-bottom: 6rpx;
+}
+
+.time {
+  font-size: 22rpx;
+  color: #888;
+}

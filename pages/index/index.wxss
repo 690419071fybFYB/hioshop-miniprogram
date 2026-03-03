@@ -187,6 +187,111 @@
     box-sizing: border-box;
 }
 
+.coupon-zone {
+    margin: 20rpx 24rpx 12rpx;
+    padding: 20rpx;
+    background: linear-gradient(180deg, #fff0f4 0%, #fff8f8 100%);
+    border-radius: 18rpx;
+}
+
+.coupon-zone-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.coupon-zone-title {
+    font-size: 34rpx;
+    font-weight: 700;
+    color: #222;
+}
+
+.coupon-zone-more {
+    font-size: 24rpx;
+    color: #ff3456;
+}
+
+.coupon-loading {
+    margin-top: 16rpx;
+    font-size: 24rpx;
+    color: #888;
+}
+
+.coupon-empty {
+    margin-top: 18rpx;
+    padding: 20rpx;
+    background: #fff;
+    border-radius: 12rpx;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.coupon-empty-text {
+    font-size: 24rpx;
+    color: #666;
+}
+
+.coupon-empty-btn {
+    height: 52rpx;
+    line-height: 52rpx;
+    border-radius: 26rpx;
+    font-size: 22rpx;
+}
+
+.coupon-scroll {
+    margin-top: 18rpx;
+    white-space: nowrap;
+}
+
+.coupon-item {
+    width: 220rpx;
+    min-height: 212rpx;
+    padding: 18rpx 14rpx 16rpx;
+    margin-right: 14rpx;
+    display: inline-flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    background: #fff;
+    border-radius: 12rpx;
+    border: 1rpx solid #ffd7de;
+}
+
+.coupon-item.received {
+    opacity: 0.65;
+}
+
+.coupon-amount {
+    font-size: 40rpx;
+    line-height: 46rpx;
+    font-weight: 700;
+    color: #ff3456;
+}
+
+.coupon-limit {
+    margin-top: 4rpx;
+    font-size: 22rpx;
+    color: #ff3456;
+}
+
+.coupon-rule {
+    margin-top: 8rpx;
+    min-height: 60rpx;
+    font-size: 20rpx;
+    line-height: 30rpx;
+    color: #666;
+    white-space: normal;
+}
+
+.coupon-btn {
+    margin-top: auto;
+    width: 100%;
+    height: 54rpx;
+    line-height: 54rpx;
+    font-size: 22rpx;
+    border-radius: 28rpx;
+}
+
 .catalog-wrap .first {
     width: 100%;
     box-sizing: border-box;
@@ -358,8 +463,27 @@
 
 .new-box .navi-url .goods-info .price-container .l .h {
     font-size: 28rpx;
-    font-weight: 500;
+    font-weight: 700;
+    color: #e53333;
+}
+
+.new-box .navi-url .goods-info .price-container .l .promo-origin {
+    margin-top: 4rpx;
+    font-size: 20rpx;
+    color: #999;
+    text-decoration: line-through;
+}
+
+.new-box .navi-url .goods-info .price-container .l .promo-tag {
+    margin-top: 6rpx;
+    display: inline-block;
+    padding: 0 8rpx;
+    line-height: 28rpx;
+    font-size: 18rpx;
     color: #ff3456;
+    background: #fff1f1;
+    border: 1rpx solid #ffd4d4;
+    border-radius: 6rpx;
 }
 
 .new-box .navi-url .goods-info .price-container .l .b {

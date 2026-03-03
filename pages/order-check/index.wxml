@@ -50,6 +50,13 @@
 				<view class="row-label">快递</view>
 				<view class="right-text">¥{{freightPrice}}</view>
 			</view>
+			<view class="row-box" bindtap="goSelectCoupon">
+				<view class="row-label">优惠券</view>
+				<view class="right-text">
+					<text wx:if="{{selectedCoupons.length > 0}}">已选{{selectedCoupons.length}}张，-¥{{couponPrice}}</text>
+					<text wx:else>去选择</text>
+				</view>
+			</view>
 			<view class="memo-box">
 				<view class="row-label">备注：</view>
 				<view class="right-text memo-input">

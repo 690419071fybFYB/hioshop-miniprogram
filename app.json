@@ -6,6 +6,8 @@
         "pages/cart/cart",
         "pages/share/index",
         "pages/search/search",
+        "pages/coupon-center/index",
+        "pages/order-coupon/index",
         "pages/order-check/index",
         "pages/goods/goods",
         "pages/ucenter/about/index",
@@ -17,6 +19,7 @@
         "pages/ucenter/goods-list/index",
         "pages/ucenter/order-details/index",
         "pages/ucenter/express-info/index",
+        "pages/ucenter/coupon/index",
         "pages/ucenter/footprint/index",
         "pages/payResult/payResult",
         "pages/payOffline/index"

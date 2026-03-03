@@ -42,6 +42,38 @@
             </swiper-item>
         </swiper>
     </view>
+    <view class="coupon-zone" wx:if="{{couponLoading || couponList.length > 0 || couponNeedLogin}}">
+        <view class="coupon-zone-head">
+            <view class="coupon-zone-title">限时领券</view>
+            <view class="coupon-zone-more" bindtap="toCouponCenter">查看更多</view>
+        </view>
+        <view class="coupon-loading" wx:if="{{couponLoading}}">优惠券加载中...</view>
+        <view class="coupon-empty" wx:elif="{{couponList.length === 0 && couponNeedLogin}}">
+            <view class="coupon-empty-text">登录后可领取专属优惠券</view>
+            <button class="coupon-empty-btn" size="mini" type="warn" bindtap="goLoginForCoupon">去登录</button>
+        </view>
+        <view class="coupon-empty" wx:elif="{{couponList.length === 0}}">
+            <view class="coupon-empty-text">当前暂无可领取优惠券</view>
+        </view>
+        <scroll-view wx:else class="coupon-scroll" scroll-x="true" enable-flex="true">
+            <view class="coupon-item {{item.has_received ? 'received' : ''}}" wx:for="{{couponList}}" wx:key="id">
+                <view class="coupon-amount">{{item.amountText}}</view>
+                <view class="coupon-limit">{{item.limitText}}</view>
+                <view class="coupon-rule">{{item.ruleText}}</view>
+                <button
+                    class="coupon-btn"
+                    size="mini"
+                    type="{{item.has_received ? 'default' : 'warn'}}"
+                    plain="{{item.has_received}}"
+                    disabled="{{item.has_received}}"
+                    data-id="{{item.id}}"
+                    bindtap="receiveCouponFromHome"
+                >
+                    {{item.has_received ? '已领取' : '立即领取'}}
+                </button>
+            </view>
+        </scroll-view>
+    </view>
     <!-- <ad unit-id="adunit-c755904541658aa1" ad-type="grid" grid-opacity="0.8" grid-count="5" ad-theme="white"></ad> -->
     <swiper class="catalog-wrap" indicator-dots="{{false}}" indicator-color="#dedede" indicator-active-color="#e00000" wx:if="{{show_channel}}">
         <swiper-item class="first">
@@ -94,7 +126,9 @@
                             <view class="goods-title">{{iitem.name}}</view>
                             <view class='price-container'>
                                 <view class='l'>
-                                    <view class='h'>￥{{iitem.min_retail_price}}</view>
+                                    <view class='h'>￥{{iitem.has_coupon_promo ? iitem.promo_price : iitem.min_retail_price}}</view>
+                                    <view class='promo-origin' wx:if="{{iitem.has_coupon_promo}}">￥{{iitem.original_price}}</view>
+                                    <view class='promo-tag' wx:if="{{iitem.has_coupon_promo && iitem.promo_tag}}">{{iitem.promo_tag}}</view>
                                 </view>
                             </view>
                         </view>

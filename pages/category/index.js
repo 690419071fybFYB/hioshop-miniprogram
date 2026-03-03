@@ -114,22 +114,29 @@ Page({
             id: id
         }, 'POST', { page: that }).then(function(res) {
             if (res.errno === 0) {
-                const incoming = res.data.data || [];
+                const incoming = Array.isArray(res.data.data) ? res.data.data : [];
                 const mergedList = that.data.list.concat(incoming);
-                let count = res.data.count;
+                const count = Number(res.data.count || 0);
+                const currentPage = Number(res.data.currentPage || targetPage || 1);
+                const hasMore = incoming.length > 0 && mergedList.length < count;
                 that.setData({
                     allCount: count,
-                    allPage: res.data.currentPage,
+                    allPage: currentPage,
                     list: mergedList,
-                    showNoMore: mergedList.length < count ? 1 : 0,
+                    showNoMore: hasMore ? 1 : 0,
                     loading: 0,
                     isLoadingMore: false,
+                    hasError: false,
+                    errorMessage: ''
                 });
                 if (count == 0) {
                     that.setData({
                         hasInfo: 0,
                         showNoMore: 0
                     });
+                }
+                if (hasMore) {
+                    that.tryAutoLoadNextPage();
                 }
             }
         }).catch(function() {
@@ -144,44 +151,35 @@ Page({
     },
     onShow: function() {
         this.getChannelShowInfo();
-        let id = this.data.nowId;
-        let nowId = wx.getStorageSync('categoryId');
-        if(id == 0 && nowId === 0){
-            return false
-        }
-        else if (nowId == 0 && nowId === '') {
-            this.setData({
-                list: [],
-                allPage: 1,
-                allCount: 0,
-                size: 8,
-                loading: 1,
-                isLoadingMore: false
-            })
-            this.getCurrentList(0);
-            this.setData({
-                nowId: 0,
-                currentCategory: {}
-            })
-            wx.setStorageSync('categoryId', 0)
-        } else if(id != nowId) {
-            this.setData({
-                list: [],
-                allPage: 1,
-                allCount: 0,
-                size: 8,
-                loading: 1,
-                isLoadingMore: false
-            })
-            this.getCurrentList(nowId);
-            this.getCurrentCategory(nowId);
-            this.setData({
-                nowId: nowId
-            })
-            wx.setStorageSync('categoryId', nowId)
-        }
-        
         this.getCatalog();
+        const storedCategoryId = wx.getStorageSync('categoryId');
+        const parsedStoredId = Number(storedCategoryId);
+        const hasStoredId = storedCategoryId !== '' && storedCategoryId !== undefined && storedCategoryId !== null && !Number.isNaN(parsedStoredId);
+        const targetId = hasStoredId ? parsedStoredId : (Number(this.data.nowId) || 0);
+        const currentId = Number(this.data.nowId) || 0;
+        if (this.data.list.length > 0 && currentId === targetId) {
+            return;
+        }
+        this.setData({
+            list: [],
+            allPage: 1,
+            allCount: 0,
+            size: 8,
+            loading: 1,
+            isLoadingMore: false,
+            nowId: targetId,
+            hasError: false,
+            errorMessage: ''
+        });
+        this.getCurrentList(targetId, 1);
+        if (targetId === 0) {
+            this.setData({
+                currentCategory: {}
+            });
+        } else {
+            this.getCurrentCategory(targetId);
+        }
+        wx.setStorageSync('categoryId', targetId);
     },
     switchCate: function(e) {
         let id = e.currentTarget.dataset.id;
@@ -218,6 +216,9 @@ Page({
         if (that.data.loading === 1 || that.data.isLoadingMore) {
             return false;
         }
+        if (that.data.showNoMore !== 1) {
+            return false;
+        }
         if (that.data.allCount > 0 && that.data.list.length >= that.data.allCount) {
             that.setData({
                 showNoMore: 0
@@ -234,6 +235,24 @@ Page({
         } else {
             that.getCurrentList(nowId, nextPage);
         }
+    },
+    tryAutoLoadNextPage: function() {
+        if (this.data.loading === 1 || this.data.isLoadingMore || this.data.showNoMore !== 1) {
+            return;
+        }
+        const query = wx.createSelectorQuery().in(this);
+        query.select('.cate').boundingClientRect();
+        query.select('.list-wrap').boundingClientRect();
+        query.exec((rects) => {
+            const cateRect = rects && rects[0];
+            const listRect = rects && rects[1];
+            if (!cateRect || !listRect) {
+                return;
+            }
+            if (Number(listRect.height || 0) <= Number(cateRect.height || 0) + 20) {
+                this.onBottom();
+            }
+        });
     },
     onCateScroll: function(e) {
         if (this.data.loading === 1 || this.data.isLoadingMore || this.data.showNoMore !== 1) {

@@ -74,7 +74,7 @@ function postProcessResponse(res) {
             data: {}
         };
     }
-    if (!normalizedData.data || typeof normalizedData.data !== 'object' || Array.isArray(normalizedData.data)) {
+    if (!Object.prototype.hasOwnProperty.call(normalizedData, 'data') || normalizedData.data === null || typeof normalizedData.data === 'undefined') {
         normalizedData.data = {};
     }
     return normalizedData;
@@ -278,25 +278,38 @@ function sentRes(url, data, method, fn) {
 }
 
 function loginNow() {
-    let userInfo = wx.getStorageSync('userInfo');
-    if (userInfo == '') {
-      wx.login({
-        success: (res) => {
-          request(api.AuthLoginByWeixin, {
-            code: res.code
-          }, 'POST', { skipAuthRefresh: true }).then(function (res) {
-            if (res.errno === 0) {
-              session.saveSession({
-                token: res.data.token,
-                userInfo: res.data.userInfo
-              });
-            }
-          });
-        },
-      });
-    } else {
-        return true;
+    const token = wx.getStorageSync('token') || '';
+    const pages = getCurrentPages();
+    const current = pages && pages.length ? pages[pages.length - 1] : null;
+    const isUcenterPage = !!(current && current.route === 'pages/ucenter/index/index');
+
+    if (!token) {
+        wx.showToast({
+            title: '请先登录',
+            icon: 'none'
+        });
+        if (!isUcenterPage) {
+            wx.switchTab({
+                url: '/pages/ucenter/index/index'
+            });
+        }
+        return false;
     }
+
+    if (!session.getProfileCompleted()) {
+        wx.showToast({
+            title: '请先完善登录资料',
+            icon: 'none'
+        });
+        if (!isUcenterPage) {
+            wx.switchTab({
+                url: '/pages/ucenter/index/index'
+            });
+        }
+        return false;
+    }
+
+    return true;
 }
 
 function getTextLength(str, full) {

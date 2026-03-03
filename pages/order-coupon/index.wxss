@@ -1,0 +1,67 @@
+.container {
+  padding: 24rpx;
+  padding-bottom: 120rpx;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.title {
+  font-size: 34rpx;
+  font-weight: 600;
+}
+
+.clear {
+  color: #ff3456;
+}
+
+.loading, .empty {
+  text-align: center;
+  color: #999;
+  padding: 48rpx 0;
+}
+
+.coupon-card {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 12rpx;
+  border: 2rpx solid transparent;
+}
+
+.coupon-card.selected {
+  border-color: #ff3456;
+}
+
+.coupon-card.disabled {
+  opacity: 0.6;
+}
+
+.name {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+
+.rule {
+  color: #ff3456;
+  margin-bottom: 6rpx;
+}
+
+.tips {
+  font-size: 22rpx;
+  color: #888;
+}
+
+.bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  padding: 16rpx 24rpx;
+}

@@ -46,12 +46,6 @@ page {
   border: none;
 }
 
-.quick-btn.profile{
-  background: #fff;
-  color: #d63462;
-  border: 1rpx solid #ffc1d0;
-}
-
 .quick-btn.phone{
   background: linear-gradient(to right, #ff3456, #ff347d);
   color: #fff;
