@@ -200,7 +200,7 @@ Page({
             postscript: postscript,
             freightPrice: freightPrice,
             actualPrice: actualPrice,
-            selectedUserCouponIds: (this.data.selectedUserCouponIds || []).join(','),
+            selectedUserCouponIds: (this.data.selectedUserCouponIds || []),
             offlinePay: 0
         }, 'POST', { page: this }).then(res => {
             if (res.errno === 0) {
@@ -237,7 +237,7 @@ Page({
             postscript: postscript,
             freightPrice: freightPrice,
             actualPrice: actualPrice,
-            selectedUserCouponIds: (this.data.selectedUserCouponIds || []).join(','),
+            selectedUserCouponIds: (this.data.selectedUserCouponIds || []),
             offlinePay: 1
         }, 'POST', { page: this }).then(res => {
             if (res.errno === 0) {

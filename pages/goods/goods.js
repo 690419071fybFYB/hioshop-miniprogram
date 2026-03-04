@@ -15,6 +15,9 @@ Page({
         productList: [],
         cartGoodsCount: 0,
         checkedSpecPrice: 0,
+        checkedSpecPromoPrice: 0,
+        checkedSpecOriginalPrice: 0,
+        checkedSpecHasCouponPromo: false,
         number: 1,
         checkedSpecText: '',
         tmpSpecText: '请选择规格和数量',
@@ -35,6 +38,16 @@ Page({
         errorMessage: '',
         uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
         vantEnabled: !!api.features.vantEnabled
+    },
+    getPriceDisplay(source) {
+        const item = source || {};
+        const hasCouponPromo = Number(item.has_coupon_promo || 0) === 1;
+        const retailPrice = item.retail_price || item.min_retail_price || 0;
+        return {
+            hasCouponPromo,
+            promoPrice: hasCouponPromo ? (item.promo_price || retailPrice) : retailPrice,
+            originalPrice: hasCouponPromo ? (item.original_price || retailPrice) : retailPrice
+        };
     },
     hideDialog: function (e) {
         let that = this;
@@ -121,13 +134,17 @@ Page({
                 for (const item of res.data.gallery) {
                     galleryImages.push(item.img_url);
                 }
+                const defaultPriceDisplay = that.getPriceDisplay(res.data.info);
                 that.setData({
                     goods: res.data.info,
                     goodsNumber: res.data.info.goods_number,
                     gallery: res.data.gallery,
                     specificationList: res.data.specificationList,
                     productList: res.data.productList,
-                    checkedSpecPrice: res.data.info.retail_price,
+                    checkedSpecPrice: defaultPriceDisplay.promoPrice,
+                    checkedSpecPromoPrice: defaultPriceDisplay.promoPrice,
+                    checkedSpecOriginalPrice: defaultPriceDisplay.originalPrice,
+                    checkedSpecHasCouponPromo: defaultPriceDisplay.hasCouponPromo,
                     galleryImages: galleryImages,
                     loading:1,
                     hasError: false,
@@ -266,10 +283,14 @@ Page({
                 return;
             }
             let checkedProduct = checkedProductArray[0];
+            const selectedPriceDisplay = this.getPriceDisplay(checkedProduct);
             if (checkedProduct.goods_number < this.data.number) {
                 //找不到对应的product信息，提示没有库存
                 this.setData({
-                    checkedSpecPrice: checkedProduct.retail_price,
+                    checkedSpecPrice: selectedPriceDisplay.promoPrice,
+                    checkedSpecPromoPrice: selectedPriceDisplay.promoPrice,
+                    checkedSpecOriginalPrice: selectedPriceDisplay.originalPrice,
+                    checkedSpecHasCouponPromo: selectedPriceDisplay.hasCouponPromo,
                     goodsNumber: checkedProduct.goods_number,
                     soldout: true
                 });
@@ -281,7 +302,10 @@ Page({
             }
             if (checkedProduct.goods_number > 0) {
                 this.setData({
-                    checkedSpecPrice: checkedProduct.retail_price,
+                    checkedSpecPrice: selectedPriceDisplay.promoPrice,
+                    checkedSpecPromoPrice: selectedPriceDisplay.promoPrice,
+                    checkedSpecOriginalPrice: selectedPriceDisplay.originalPrice,
+                    checkedSpecHasCouponPromo: selectedPriceDisplay.hasCouponPromo,
                     goodsNumber: checkedProduct.goods_number,
                     soldout: false
                 });
@@ -289,15 +313,23 @@ Page({
                 var checkedSpecPrice = checkedProduct.retail_price;
 
             } else {
+                const defaultPriceDisplay = this.getPriceDisplay(this.data.goods);
                 this.setData({
-                    checkedSpecPrice: this.data.goods.retail_price,
+                    checkedSpecPrice: defaultPriceDisplay.promoPrice,
+                    checkedSpecPromoPrice: defaultPriceDisplay.promoPrice,
+                    checkedSpecOriginalPrice: defaultPriceDisplay.originalPrice,
+                    checkedSpecHasCouponPromo: defaultPriceDisplay.hasCouponPromo,
                     soldout: true
                 });
             }
         } else {
+            const defaultPriceDisplay = this.getPriceDisplay(this.data.goods);
             this.setData({
                 checkedSpecText: '请选择规格和数量',
-                checkedSpecPrice: this.data.goods.retail_price,
+                checkedSpecPrice: defaultPriceDisplay.promoPrice,
+                checkedSpecPromoPrice: defaultPriceDisplay.promoPrice,
+                checkedSpecOriginalPrice: defaultPriceDisplay.originalPrice,
+                checkedSpecHasCouponPromo: defaultPriceDisplay.hasCouponPromo,
                 soldout: false
             });
         }

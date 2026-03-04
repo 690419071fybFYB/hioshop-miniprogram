@@ -24,19 +24,24 @@ Page({
     if (!util.loginNow()) return;
     this.fetchList();
   },
-  fetchList() {
+  syncSelection(nextSelectedIds, showTip = false) {
     const that = this;
     that.setData({ loading: true });
     util.request(api.CouponPreview, {
       addType: that.data.addType,
       orderFrom: that.data.orderFrom,
-      selectedUserCouponIds: that.data.selectedIds.join(',')
+      selectedUserCouponIds: (nextSelectedIds || []).join(',')
     }, 'POST', { page: that })
       .then((res) => {
         if (res.errno === 0) {
+          const serverSelectedIds = (res.data.selectedCoupons || []).map((item) => Number(item.user_coupon_id));
+          const invalidIds = res.data.invalidSelectedIds || [];
+          if (showTip && invalidIds.length > 0) {
+            util.showErrorToast('部分优惠券不可用，已自动移除');
+          }
           that.setData({
             list: res.data.couponCandidates || [],
-            selectedIds: (res.data.selectedCoupons || []).map((item) => Number(item.user_coupon_id))
+            selectedIds: serverSelectedIds
           });
         } else {
           util.showErrorToast(res.errmsg || '加载失败');
@@ -49,6 +54,9 @@ Page({
         that.setData({ loading: false });
       });
   },
+  fetchList() {
+    this.syncSelection(this.data.selectedIds || [], false);
+  },
   onToggleCoupon(e) {
     const userCouponId = Number(e.currentTarget.dataset.id || 0);
     if (userCouponId <= 0) return;
@@ -57,19 +65,12 @@ Page({
     const selectedSet = new Set(this.data.selectedIds || []);
     if (selectedSet.has(userCouponId)) {
       selectedSet.delete(userCouponId);
-      this.setData({ selectedIds: Array.from(selectedSet) });
+      this.syncSelection(Array.from(selectedSet), false);
       return;
     }
 
-    // 同类型最多1张
-    const selectedRows = this.data.list.filter((item) => selectedSet.has(Number(item.user_coupon_id)));
-    const sameTypeRow = selectedRows.find((item) => String(item.coupon_type) === String(row.coupon_type));
-    if (sameTypeRow) {
-      util.showErrorToast('同类型优惠券最多选择1张');
-      return;
-    }
     selectedSet.add(userCouponId);
-    this.setData({ selectedIds: Array.from(selectedSet) });
+    this.syncSelection(Array.from(selectedSet), true);
   },
   confirmSelect() {
     wx.setStorageSync('selectedUserCouponIds', this.data.selectedIds || []);

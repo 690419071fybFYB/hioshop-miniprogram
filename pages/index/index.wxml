@@ -42,7 +42,7 @@
             </swiper-item>
         </swiper>
     </view>
-    <view class="coupon-zone" wx:if="{{couponLoading || couponList.length > 0 || couponNeedLogin}}">
+    <view class="coupon-zone" wx:if="{{couponLoading || couponSectionReady || couponNeedLogin}}">
         <view class="coupon-zone-head">
             <view class="coupon-zone-title">限时领券</view>
             <view class="coupon-zone-more" bindtap="toCouponCenter">查看更多</view>

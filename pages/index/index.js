@@ -12,6 +12,7 @@ Page({
         couponList: [],
         couponLoading: false,
         couponNeedLogin: false,
+        couponSectionReady: false,
         openAttr: false,
         showChannel: 0,
         showBanner: 0,
@@ -43,11 +44,12 @@ Page({
             that.setData({
                 couponList: [],
                 couponLoading: false,
-                couponNeedLogin: true
+                couponNeedLogin: true,
+                couponSectionReady: true
             });
             return;
         }
-        that.setData({ couponLoading: true });
+        that.setData({ couponLoading: true, couponSectionReady: false });
         util.request(api.CouponCenter, {}, 'GET', { page: that, silent401: true }).then(function (res) {
             if (res.errno === 0) {
                 const list = (res.data || []).slice(0, 4).map((item) => ({
@@ -58,18 +60,22 @@ Page({
                 }));
                 that.setData({
                     couponList: list,
-                    couponNeedLogin: false
+                    couponNeedLogin: false,
+                    couponSectionReady: true
                 });
                 return;
             }
             that.setData({
                 couponList: [],
-                couponNeedLogin: false
+                couponNeedLogin: false,
+                couponSectionReady: true
             });
-        }).catch(function () {
+        }).catch(function (err) {
+            const unauthorized = err && err.code === 'UNAUTHORIZED';
             that.setData({
                 couponList: [],
-                couponNeedLogin: false
+                couponNeedLogin: unauthorized,
+                couponSectionReady: true
             });
         }).finally(function () {
             that.setData({

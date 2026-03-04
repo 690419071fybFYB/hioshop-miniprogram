@@ -792,6 +792,13 @@
     color: #ff3456;
 }
 
+.price-range .old-price {
+    margin-top: 6rpx;
+    font-size: 24rpx;
+    color: #999;
+    text-decoration: line-through;
+}
+
 .attr-pop .img {
     float: left;
     height: 160rpx;
