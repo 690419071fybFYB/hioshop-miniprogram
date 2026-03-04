@@ -10,9 +10,11 @@
     <view class="sheet-title">完善登录资料</view>
     <view class="sheet-subtitle">仅需头像、昵称、手机号即可完成登录</view>
 
-    <view class="avatar-wrap" bindtap="onTapNicknameField">
-      <image class="avatar" src="{{avatarDisplayUrl}}"></image>
-      <view class="avatar-tip">点击头像或昵称框，可微信获取/上传头像</view>
+    <view class="avatar-wrap">
+      <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image class="avatar" src="{{avatarDisplayUrl}}"></image>
+      </button>
+      <view class="avatar-tip">点击头像可直接选择微信头像或上传图片</view>
     </view>
 
     <view class="form">
@@ -25,18 +27,11 @@
             value="{{nickName}}"
             bindinput="onNickNameInput"
             bindblur="onNickNameBlur"
-            disabled="{{!nicknameManualMode}}"
-            focus="{{focusNickname}}"
             placeholder="点击输入框获取微信昵称（必填）"
           />
-          <button
-            wx:if="{{!nicknameManualMode}}"
-            class="field-action-btn"
-            bindtap="onTapNicknameField"
-          ></button>
         </view>
-        <view class="field-helper" bindtap="onTapNicknameField">
-          昵称头像：{{profileAuthorized ? '已授权' : '未授权'}}，点此可微信获取或上传头像
+        <view class="field-helper">
+          昵称：点击输入框可选择微信昵称，头像请点上方头像
         </view>
       </view>
 

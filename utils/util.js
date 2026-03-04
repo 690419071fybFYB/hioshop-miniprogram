@@ -159,6 +159,19 @@ function request(url, data = {}, method = "GET", options = {}) {
                 });
             }
         }
+        if (err && err.code === 'PROFILE_INCOMPLETE') {
+            wx.showToast({
+                title: '请先完善登录资料',
+                icon: 'none'
+            });
+            const pages = getCurrentPages();
+            const current = pages && pages.length ? pages[pages.length - 1] : null;
+            if (!current || current.route !== 'pages/ucenter/index/index') {
+                wx.switchTab({
+                    url: '/pages/ucenter/index/index'
+                });
+            }
+        }
         return Promise.reject(err);
     });
 }

@@ -42,9 +42,12 @@ Page({
     });
   },
   onChooseAvatar(e) {
-    const {
-      avatarUrl
-    } = e.detail
+    const previousAvatar = this.data.avatarUrl || '/images/icon/default_avatar_big.png';
+    const { avatarUrl } = e.detail || {};
+    if (!avatarUrl) {
+      util.showErrorToast('未选择头像');
+      return;
+    }
     this.setData({
       avatarUrl,
       avatarDisplayUrl: util.normalizeImageUrl(avatarUrl, api.ApiRoot),
@@ -61,20 +64,35 @@ Page({
         // 'userId': 'test'
       },
       success(res) {
-        if (res.statusCode == 200) {
-          let re = res.data
-          let echo = JSON.parse(re);
-          let data = echo.data;
-          let avatarUrl = data.fileUrl
+        try {
+          const payload = res && res.data ? JSON.parse(res.data) : {};
+          if (res.statusCode !== 200 || payload.errno !== 0 || !payload.data || !payload.data.fileUrl) {
+            throw new Error((payload && payload.errmsg) || '头像上传失败');
+          }
+          const uploadedAvatar = payload.data.fileUrl;
           const localUserInfo = wx.getStorageSync('userInfo') || {};
-          localUserInfo.avatar = avatarUrl;
+          localUserInfo.avatar = uploadedAvatar;
           wx.setStorageSync('userInfo', localUserInfo);
           that.setData({
-            avatarUrl: avatarUrl,
-            avatarDisplayUrl: util.normalizeImageUrl(avatarUrl, api.ApiRoot),
+            avatarUrl: uploadedAvatar,
+            avatarDisplayUrl: util.normalizeImageUrl(uploadedAvatar, api.ApiRoot),
             hasAvatar: 1
-          })
+          });
+          util.showSuccessToast('头像已更新');
+        } catch (error) {
+          that.setData({
+            avatarUrl: previousAvatar,
+            avatarDisplayUrl: util.normalizeImageUrl(previousAvatar, api.ApiRoot),
+          });
+          util.showErrorToast(error.message || '头像上传失败');
         }
+      },
+      fail() {
+        that.setData({
+          avatarUrl: previousAvatar,
+          avatarDisplayUrl: util.normalizeImageUrl(previousAvatar, api.ApiRoot),
+        });
+        util.showErrorToast('头像上传失败');
       }
     })
   },
@@ -121,15 +139,12 @@ Page({
     this.getSettingsDetail();
   },
   saveInfo() {
-    let mobile = this.data.mobile;
-    mobile = mobile.replace(/(^\s*)|(\s*$)/g, "");
-    if (mobile != '') {
-      var myreg = /^(((13[0-9]{1})|(14[0-9]{1})|(15[0-9]{1})|(18[0-9]{1})|(17[0-9]{1})|(16[0-9]{1})|(19[0-9]{1}))+\d{8})$/;
-      if (mobile.length < 11) {
-        return util.showErrorToast('手机号码长度不对');
-      } else if (!myreg.test(mobile)) {
-        return util.showErrorToast('手机号码有问题');
-      }
+    let mobile = String(this.data.mobile || '').replace(/(^\s*)|(\s*$)/g, "");
+    if (!mobile) {
+      return util.showErrorToast('请输入手机号');
+    }
+    if (!/^1[3-9]\d{9}$/.test(mobile)) {
+      return util.showErrorToast('手机号码有问题');
     }
     let avatar = this.data.avatarUrl;
     let nickName = this.data.nickName;
@@ -156,7 +171,7 @@ Page({
           avatar: avatar
         }));
         session.syncProfileCompleted(savedProfile);
-        util.showErrorToast('保存成功');
+        util.showSuccessToast('保存成功');
         wx.navigateBack()
       }
     });

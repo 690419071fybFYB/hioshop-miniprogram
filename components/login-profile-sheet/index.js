@@ -33,10 +33,7 @@ Component({
     avatarUrl: DEFAULT_AVATAR,
     avatarDisplayUrl: DEFAULT_AVATAR,
     submitting: false,
-    profileAuthorized: false,
     phoneAuthorized: false,
-    nicknameManualMode: false,
-    focusNickname: false,
     phoneManualMode: false
   },
   observers: {
@@ -57,52 +54,23 @@ Component({
       const nickname = String(profile.nickname || profile.nickName || '').trim();
       const mobile = normalizeMobile(profile.mobile);
       const avatarUrl = profile.avatar || DEFAULT_AVATAR;
+      const phoneValid = /^1[3-9]\d{9}$/.test(mobile);
       this.setData({
         nickName: nickname,
         mobile: mobile,
         avatarUrl: avatarUrl,
         avatarDisplayUrl: util.normalizeImageUrl(avatarUrl, api.ApiRoot),
-        profileAuthorized: !!nickname && nickname !== '微信用户',
-        phoneAuthorized: /^1[3-9]\d{9}$/.test(mobile),
-        nicknameManualMode: !!nickname && nickname !== '微信用户',
-        focusNickname: false,
-        phoneManualMode: /^1[3-9]\d{9}$/.test(mobile)
-      });
-    },
-    onTapNicknameField() {
-      const that = this;
-      wx.showActionSheet({
-        itemList: ['微信获取昵称头像', '上传头像（相册）', '手动输入昵称'],
-        success(res) {
-          if (res.tapIndex === 0) {
-            that.useWechatProfile();
-            return;
-          }
-          if (res.tapIndex === 1) {
-            that.pickAndUploadAvatar();
-            return;
-          }
-          if (res.tapIndex === 2) {
-            that.setData({
-              nicknameManualMode: true,
-              focusNickname: true
-            });
-          }
-        }
+        phoneAuthorized: phoneValid,
+        phoneManualMode: phoneValid
       });
     },
     onNickNameInput(e) {
+      const nickName = String(e.detail.value || '');
       this.setData({
-        nickName: String(e.detail.value || ''),
-        nicknameManualMode: true,
-        focusNickname: false
+        nickName: nickName
       });
     },
-    onNickNameBlur() {
-      this.setData({
-        focusNickname: false
-      });
-    },
+    onNickNameBlur() {},
     onMobileInput(e) {
       this.setData({
         mobile: normalizeMobile(e.detail.value),
@@ -114,43 +82,22 @@ Component({
         phoneManualMode: false
       });
     },
-    useWechatProfile() {
-      const that = this;
-      wx.getUserProfile({
-        lang: 'zh_CN',
-        desc: '用于补全头像和昵称',
-        success(res) {
-          const user = res.userInfo || {};
-          const nickName = String(user.nickName || '').trim();
-          const avatarUrl = user.avatarUrl || that.data.avatarUrl;
-          if (!nickName && !avatarUrl) {
-            util.showErrorToast('未获取到微信资料');
-            return;
-          }
-          that.setData({
-            nickName: nickName,
-            avatarUrl: avatarUrl,
-            avatarDisplayUrl: util.normalizeImageUrl(avatarUrl, api.ApiRoot),
-            profileAuthorized: true,
-            nicknameManualMode: true,
-            focusNickname: false
-          });
-          util.showSuccessToast('已自动填充微信昵称和头像');
-        },
-        fail() {
-          util.showErrorToast('你已取消微信资料授权，可继续手动填写');
-        }
-      });
+    onChooseAvatar(e) {
+      const avatarUrl = e && e.detail ? String(e.detail.avatarUrl || '') : '';
+      if (avatarUrl) {
+        this.uploadAvatar(avatarUrl);
+        return;
+      }
+      this.pickAndUploadAvatar();
     },
     pickAndUploadAvatar() {
       const that = this;
-      wx.chooseMedia({
+      wx.chooseImage({
         count: 1,
-        mediaType: ['image'],
+        sizeType: ['compressed'],
         sourceType: ['album', 'camera'],
         success(res) {
-          const temp = res && res.tempFiles && res.tempFiles[0] ? res.tempFiles[0] : null;
-          const tempPath = temp && temp.tempFilePath ? temp.tempFilePath : '';
+          const tempPath = res && res.tempFilePaths && res.tempFilePaths[0] ? res.tempFilePaths[0] : '';
           if (!tempPath) {
             util.showErrorToast('未选择图片');
             return;
@@ -194,8 +141,7 @@ Component({
             }
             that.setData({
               avatarUrl: fileUrl,
-              avatarDisplayUrl: util.normalizeImageUrl(fileUrl, api.ApiRoot),
-              profileAuthorized: true
+              avatarDisplayUrl: util.normalizeImageUrl(fileUrl, api.ApiRoot)
             });
             util.showSuccessToast('头像已更新');
           } catch (error) {

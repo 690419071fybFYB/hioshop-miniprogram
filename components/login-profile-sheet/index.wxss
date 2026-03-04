@@ -27,6 +27,17 @@
   align-items: center;
 }
 
+.avatar-btn {
+  padding: 0;
+  border: none;
+  background: transparent;
+  line-height: 1;
+}
+
+.avatar-btn::after {
+  border: none;
+}
+
 .avatar {
   width: 118rpx;
   height: 118rpx;

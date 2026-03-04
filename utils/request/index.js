@@ -1,6 +1,6 @@
 const api = require('../../config/api.js');
-const store = require('../../store/index.js');
 const telemetry = require('../telemetry.js');
+const session = require('../session.js');
 
 const DEFAULT_TIMEOUT = 10000;
 const DEFAULT_RETRY = 2;
@@ -8,10 +8,6 @@ let isRefreshingToken = false;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function useStore() {
-  return !api.features || api.features.newStore !== false;
 }
 
 function useTelemetry() {
@@ -85,17 +81,10 @@ async function refreshTokenByWeixin() {
     }
     const token = res.data.data.token || '';
     const userInfo = res.data.data.userInfo || null;
-    wx.setStorageSync('token', token);
-    wx.setStorageSync('userInfo', userInfo || {});
-    if (useStore()) {
-      store.patch({
-        session: {
-          token,
-          isLogin: !!token
-        },
-        user: userInfo
-      });
-    }
+    session.saveSession({
+      token,
+      userInfo
+    });
     return !!token;
   } catch (e) {
     return false;
@@ -105,18 +94,7 @@ async function refreshTokenByWeixin() {
 }
 
 function clearSession() {
-  wx.removeStorageSync('token');
-  wx.removeStorageSync('userInfo');
-  wx.removeStorageSync('profileCompleted');
-  if (useStore()) {
-    store.patch({
-      session: {
-        token: '',
-        isLogin: false
-      },
-      user: null
-    });
-  }
+  session.clearSession();
 }
 
 async function request(url, data, method, options) {
@@ -201,6 +179,25 @@ async function request(url, data, method, options) {
           message: body.errmsg || 'login expired',
           retriable: false,
           source: 'auth',
+          traceId: ''
+        });
+      }
+      if (body.errno === 412 && !opts.skipProfileGuard) {
+        if (useTelemetry()) {
+          await telemetry.trackRequest({
+            url,
+            method: reqMethod,
+            success: false,
+            code: 'PROFILE_INCOMPLETE',
+            duration: Date.now() - startedAt,
+            attempt
+          });
+        }
+        return Promise.reject({
+          code: 'PROFILE_INCOMPLETE',
+          message: body.errmsg || 'profile incomplete',
+          retriable: false,
+          source: 'profile',
           traceId: ''
         });
       }

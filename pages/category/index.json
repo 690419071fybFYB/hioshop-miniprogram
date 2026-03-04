@@ -1,5 +1,6 @@
 {
     "navigationBarTitleText": "全部产品",
+    "disableScroll": true,
     "usingComponents": {
         "van-button": "@vant/weapp/button/index",
         "van-empty": "@vant/weapp/empty/index",
