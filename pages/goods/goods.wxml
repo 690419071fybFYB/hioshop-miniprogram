@@ -191,7 +191,7 @@
         <view class="ui-loading-text">正在加载商品详情</view>
     </view>
     <block wx:else>
-        <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/loading.png"></image>
+        <image class="img" src="https://fybshopbk-1369967353.cos.ap-shanghai.myqcloud.com/images/icon/loading.png"></image>
         <view class="text">正在加载中</view>
     </block>
 </view>

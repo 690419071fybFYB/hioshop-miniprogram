@@ -3,6 +3,9 @@
     <view class="title">领券中心</view>
     <view class="link" bindtap="toMyCoupons">我的优惠券</view>
   </view>
+  <view class="login-tip" wx:if="{{needLoginToReceive}}">
+    未登录可先浏览，领取时将引导你先登录。
+  </view>
 
   <view wx:if="{{loading}}" class="loading">加载中...</view>
 
@@ -22,8 +25,15 @@
       <view class="time">使用期：{{item.use_start_at_text}} - {{item.use_end_at_text}}</view>
     </view>
     <view class="right">
-      <button wx:if="{{!item.has_received}}" size="mini" type="primary" data-id="{{item.id}}" bindtap="receiveCoupon">立即领取</button>
-      <button wx:else size="mini" disabled>已领取</button>
+      <button
+        size="mini"
+        type="{{item.actionDisabled ? 'default' : 'primary'}}"
+        disabled="{{item.actionDisabled}}"
+        data-id="{{item.id}}"
+        bindtap="receiveCoupon"
+      >
+        {{item.actionText}}
+      </button>
     </view>
   </view>
 </view>

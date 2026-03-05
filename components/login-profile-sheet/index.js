@@ -8,6 +8,18 @@ function normalizeMobile(value) {
   return String(value || '').replace(/\s+/g, '').trim();
 }
 
+function isValidMobile(value) {
+  return /^1[3-9]\d{9}$/.test(normalizeMobile(value));
+}
+
+function maskMobile(value) {
+  const mobile = normalizeMobile(value);
+  if (!isValidMobile(mobile)) {
+    return '未授权';
+  }
+  return `${mobile.slice(0, 3)}****${mobile.slice(-4)}`;
+}
+
 Component({
   properties: {
     visible: {
@@ -30,6 +42,7 @@ Component({
   data: {
     nickName: '',
     mobile: '',
+    mobileMasked: '未授权',
     avatarUrl: DEFAULT_AVATAR,
     avatarDisplayUrl: DEFAULT_AVATAR,
     submitting: false,
@@ -54,14 +67,15 @@ Component({
       const nickname = String(profile.nickname || profile.nickName || '').trim();
       const mobile = normalizeMobile(profile.mobile);
       const avatarUrl = profile.avatar || DEFAULT_AVATAR;
-      const phoneValid = /^1[3-9]\d{9}$/.test(mobile);
+      const phoneValid = isValidMobile(mobile);
       this.setData({
         nickName: nickname,
         mobile: mobile,
+        mobileMasked: maskMobile(mobile),
         avatarUrl: avatarUrl,
         avatarDisplayUrl: util.normalizeImageUrl(avatarUrl, api.ApiRoot),
         phoneAuthorized: phoneValid,
-        phoneManualMode: phoneValid
+        phoneManualMode: false
       });
     },
     onNickNameInput(e) {
@@ -72,14 +86,16 @@ Component({
     },
     onNickNameBlur() {},
     onMobileInput(e) {
+      const mobile = normalizeMobile(e.detail.value);
       this.setData({
-        mobile: normalizeMobile(e.detail.value),
+        mobile,
+        mobileMasked: maskMobile(mobile),
         phoneManualMode: true
       });
     },
-    switchPhoneToWechat() {
+    togglePhoneManualInput() {
       this.setData({
-        phoneManualMode: false
+        phoneManualMode: !this.data.phoneManualMode
       });
     },
     onChooseAvatar(e) {
@@ -180,10 +196,12 @@ Component({
       const that = this;
       util.request(api.AuthPhoneNumber, requestPayload, 'POST').then(function(res) {
         if (res.errno === 0 && res.data && res.data.mobile) {
+          const mobile = normalizeMobile(res.data.mobile);
           that.setData({
-            mobile: normalizeMobile(res.data.mobile),
+            mobile,
+            mobileMasked: maskMobile(mobile),
             phoneAuthorized: true,
-            phoneManualMode: true
+            phoneManualMode: false
           });
           util.showSuccessToast('已自动填充微信手机号');
         } else {
@@ -212,7 +230,7 @@ Component({
         util.showErrorToast('请输入有效昵称');
         return;
       }
-      if (this.properties.requiredPhone && !/^1[3-9]\d{9}$/.test(mobile)) {
+      if (this.properties.requiredPhone && !isValidMobile(mobile)) {
         util.showErrorToast('请输入有效手机号');
         return;
       }
@@ -241,6 +259,7 @@ Component({
         });
         wx.setStorageSync('userInfo', Object.assign({}, cachedUserInfo, {
           nickname: nickName,
+          mobile: mobile,
           avatar: payload.avatar
         }));
         session.syncProfileCompleted(savedProfile);

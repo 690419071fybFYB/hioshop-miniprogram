@@ -1,0 +1,45 @@
+<view class="page">
+  <view class="card">
+    <view class="title">运行环境</view>
+    <view class="line">platform: {{runtime.platform}}</view>
+    <view class="line">isRealDevice: {{runtime.isRealDevice}}</view>
+    <view class="line">isDevtools: {{runtime.isDevtools}}</view>
+    <view class="line">networkType: {{networkType}}</view>
+    <view class="line wrap">apiRoot: {{runtime.apiRoot}}</view>
+  </view>
+
+  <view class="actions">
+    <button class="btn primary" bindtap="runChecks">一键接口检测</button>
+    <button class="btn" bindtap="useDevApi">切本地API</button>
+    <button class="btn" bindtap="useProdApi">切线上API</button>
+    <button class="btn" bindtap="clearApiOverride">清除API覆盖</button>
+    <button class="btn" bindtap="refreshLogs">刷新日志</button>
+    <button class="btn" bindtap="clearLogs">清空日志</button>
+    <button class="btn" bindtap="copySummary">复制诊断结果</button>
+  </view>
+
+  <view class="card" wx:if="{{checks.length}}">
+    <view class="title">接口检测结果</view>
+    <block wx:for="{{checks}}" wx:key="name">
+      <view class="check-item {{item.ok ? 'ok' : 'fail'}}">
+        <view>{{item.name}} - {{item.ok ? '成功' : '失败'}}</view>
+        <view>耗时: {{item.duration}}ms</view>
+        <view wx:if="{{item.errno}}">code: {{item.errno}}</view>
+        <view wx:if="{{item.errmsg}}">{{item.errmsg}}</view>
+      </view>
+    </block>
+  </view>
+
+  <view class="card">
+    <view class="title">最近错误日志</view>
+    <view class="empty" wx:if="{{!logs.length}}">暂无日志</view>
+    <block wx:for="{{logs}}" wx:key="ts">
+      <view class="log-item">
+        <view class="log-time">{{item.timeText}}</view>
+        <view class="log-event">{{item.event}}</view>
+        <view class="log-payload">{{item.payload.url || ''}} {{item.payload.code || ''}}</view>
+        <view class="log-payload">{{item.payload.message || item.payload.errmsg || ''}}</view>
+      </view>
+    </block>
+  </view>
+</view>

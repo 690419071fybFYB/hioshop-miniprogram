@@ -1,3 +1,8 @@
+// 购物车页面逻辑：
+// - 拉取购物车列表/汇总
+// - 勾选/全选（非编辑态走后端，编辑态走本地）
+// - 商品数量加减、删除（含左滑删除）
+// - 同步 tabBar 角标购物车数量
 var util = require('../../utils/util.js');
 var api = require('../../config/api.js');
 const store = require('../../store/index.js');
@@ -5,7 +10,9 @@ const app = getApp()
 
 Page({
     data: {
+        // 购物车商品列表
         cartGoods: [],
+        // 购物车汇总信息（后端返回 + 本地计算的已选汇总）
         cartTotal: {
             "goodsCount": 0,
             "goodsAmount": 0.00,
@@ -13,15 +20,22 @@ Page({
             "checkedGoodsAmount": 0.00,
             "userId_test": ''
         },
+        // 是否处于编辑状态（编辑态下勾选/全选不请求后端，仅本地切换）
         isEditCart: false,
+        // 是否“全选”的 UI 状态
         checkedAllStatus: true,
         editCartList: [],
+        // 手势：是否左滑显示删除
         isTouchMove: false,
+        // 手势：触摸起点坐标
         startX: 0, //开始坐标
         startY: 0,
+        // 是否有购物车商品（0/1，用于空态）
         hasCartGoods: 0,
+        // 是否出现加载错误（用于错误提示 + 重试）
         hasError: false,
         errorMessage: '',
+        // UI/组件库开关（由 config/api.js 的 features 控制）
         uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
         vantEnabled: !!api.features.vantEnabled
     },
@@ -32,20 +46,23 @@ Page({
     },
     onShow: function() {
         // 页面显示
+        // 每次进入页面都刷新购物车与角标数量
         this.getCartList();
         this.getCartNum();
         wx.removeStorageSync('categoryId');
     },
     goGoodsDetail(e){
+        // 跳转到商品详情页
         let goodsId = e.currentTarget.dataset.goodsid;
         wx.navigateTo({
           url: '/pages/goods/goods?id='+goodsId,
         })
     },
     nothing:function(){
-
+        // 空函数：常用于 catchtap 阻止冒泡
     },
     onPullDownRefresh: function() {
+        // 下拉刷新：重新拉取购物车列表与角标数量
         wx.showNavigationBarLoading()
         this.getCartList();
         this.getCartNum();
@@ -59,11 +76,13 @@ Page({
         // 页面关闭
     },
     toIndexPage: function() {
+        // 去首页（tab 页切换）
         wx.switchTab({
             url: '/pages/index/index',
         });
     },
     getCartList: function() {
+        // 获取购物车列表（后端）并更新页面数据
         let that = this;
         util.request(api.CartList, {}, 'GET', { page: that }).then(function(res) {
             if (res.errno === 0) {
@@ -81,6 +100,7 @@ Page({
                     errorMessage: ''
                 });
                 if (res.data.cartTotal.numberChange == 1) {
+                    // 后端提示库存/数量发生变化
                     util.showErrorToast('部分商品库存有变动');
                 }
             }
@@ -88,6 +108,7 @@ Page({
                 checkedAllStatus: that.isCheckedAll()
             });
         }).catch(function () {
+            // 请求失败：进入错误态
             that.setData({
                 hasError: true,
                 errorMessage: '购物车加载失败'
@@ -96,7 +117,7 @@ Page({
         });
     },
     isCheckedAll: function() {
-        //判断购物车商品已全选
+        // 判断购物车商品是否已全选
         return this.data.cartGoods.every(function(element, index, array) {
             if (element.checked == true) {
                 return true;
@@ -106,6 +127,7 @@ Page({
         });
     },
     getCheckedGoodsCount: function() {
+        // 本地计算“已选”商品数量与金额（编辑态使用）
         let checkedGoodsCount = 0;
         let checkedGoodsAmount = 0;
 
@@ -121,8 +143,10 @@ Page({
         });
     },
     checkedAll: function() {
+        // 全选/取消全选
         let that = this;
         if (!this.data.isEditCart) {
+            // 非编辑态：调用后端更新选中状态
             var productIds = this.data.cartGoods.map(function(v) {
                 return v.product_id;
             });
@@ -142,12 +166,14 @@ Page({
                 });
             });
         } else {
-            //编辑状态
+            // 编辑态：仅本地切换 checked，并重新计算已选汇总
             let checkedAllStatus = that.isCheckedAll();
             let tmpCartData = this.data.cartGoods.map(function(v) {
                 v.checked = !checkedAllStatus;
                 return v;
             });
+            // 注意：这里按原逻辑应调用 this.getCheckedGoodsCount()
+            // 当前代码写成 getCheckedGoodsCount() 可能导致未定义错误（若编辑态分支被触发）
             getCheckedGoodsCount();
             that.setData({
                 cartGoods: tmpCartData,
@@ -157,6 +183,7 @@ Page({
 
     },
     updateCart: function(itemIndex, productId, number, id) {
+        // 更新购物车商品数量（后端）
         let that = this;
         wx.showLoading({
             title: '',
@@ -168,12 +195,14 @@ Page({
             id: id
         }, 'POST', { page: that }).then(function(res) {
             if (res.errno === 0) {
+                // 后端返回新的购物车列表与汇总
                 that.setData({
                     cartGoods: res.data.cartList,
                     cartTotal: res.data.cartTotal
                 });
                 let cartItem = that.data.cartGoods[itemIndex];
                 cartItem.number = number;
+                // 同步 tabBar 角标数量
                 that.getCartNum();
             } else {
                 util.showErrorToast('库存不足了')
@@ -187,6 +216,7 @@ Page({
 
     },
     cutNumber: function(event) {
+        // 数量 -1；若减到 0（<=1）则直接删除该条
         let itemIndex = event.target.dataset.itemIndex;
         let cartItem = this.data.cartGoods[itemIndex];
         if (Number(cartItem.number) <= 1) {
@@ -200,6 +230,7 @@ Page({
         this.updateCart(itemIndex, cartItem.product_id, number, cartItem.id);
     },
     addNumber: function(event) {
+        // 数量 +1
         let itemIndex = event.target.dataset.itemIndex;
         let cartItem = this.data.cartGoods[itemIndex];
         let number = Number(cartItem.number) + 1;
@@ -209,6 +240,7 @@ Page({
         this.updateCart(itemIndex, cartItem.product_id, number, cartItem.id);
     },
     getCartNum: function() {
+        // 获取购物车商品总数（用于 tabBar 角标 + 全局 store）
         util.request(api.CartGoodsCount, {}, 'GET', { page: this }).then(function(res) {
             if (res.errno === 0) {
                 let cartGoodsCount = '';
@@ -223,6 +255,7 @@ Page({
                         text: cartGoodsCount
                     })
                 }
+                // 写入全局 store，供其他页面显示购物车数量
                 store.patch({
                     cartCount: Number(res.data.cartTotal.goodsCount || 0)
                 });
@@ -232,7 +265,7 @@ Page({
         });
     },
     checkoutOrder: function() {
-        //获取已选择的商品
+        // 去结算：需要至少选择一件商品
         util.loginNow();
         let that = this;
         var checkedGoods = this.data.cartGoods.filter(function(element, index, array) {
@@ -251,6 +284,7 @@ Page({
         })
     },
     selectTap: function(e) {
+        // 可能为历史遗留代码：依赖 goodsList/setGoodsList 等字段/方法（本文件 data 中未定义）
         const index = e.currentTarget.dataset.index;
         const list = this.data.goodsList.list;
         if (index !== '' && index != null) {
@@ -260,10 +294,12 @@ Page({
     },
 
     checkedItem: function(e) {
+        // 勾选/取消勾选单个商品
         let itemIndex = e.currentTarget.dataset.itemIndex;
         let that = this;
 
         if (!this.data.isEditCart) {
+            // 非编辑态：调用后端更新勾选状态
             util.request(api.CartChecked, {
                 productIds: that.data.cartGoods[itemIndex].product_id,
                 isChecked: that.data.cartGoods[itemIndex].checked ? 0 : 1
@@ -280,7 +316,7 @@ Page({
                 });
             });
         } else {
-            //编辑状态
+            // 编辑态：本地切换 checked，并重新计算已选汇总
             let tmpCartData = this.data.cartGoods.map(function(element, index, array) {
                 if (index == itemIndex) {
                     element.checked = !element.checked;
@@ -300,7 +336,7 @@ Page({
 
     },
     touchstart: function(e) {
-        //开始触摸时 重置所有删除
+        // 手势：开始触摸时，重置所有条目的左滑删除状态
         this.data.cartGoods.forEach(function(v, i) {
             if (v.isTouchMove) //只操作为true的
                 v.isTouchMove = false;
@@ -313,6 +349,7 @@ Page({
     },
     //滑动事件处理
     touchmove: function(e) {
+        // 手势：左滑显示删除按钮（角度>30°视为上下滑动，直接忽略）
         var that = this,
             index = e.currentTarget.dataset.index, //当前索引
             startX = that.data.startX, //开始X坐标
@@ -356,10 +393,12 @@ Page({
     },
     //删除事件
     deleteGoods: function(e) {
+        // 点击删除按钮
         let itemIndex = e.currentTarget.dataset.itemIndex;
         this.deleteCartItem(itemIndex);
     },
     deleteCartItem: function(itemIndex) {
+        // 删除购物车某一项（后端）
         let productIds = this.data.cartGoods[itemIndex].product_id;
         let that = this;
         wx.showLoading({
@@ -375,6 +414,7 @@ Page({
                     cartGoods: cartList,
                     cartTotal: res.data.cartTotal
                 });
+                // 删除后刷新列表与角标
                 that.getCartList();
                 that.getCartNum();
             }
@@ -388,6 +428,7 @@ Page({
         });
     },
     retryLoad: function() {
+        // 错误态重试：清空错误并重新拉取数据
         this.setData({
             hasError: false,
             errorMessage: ''

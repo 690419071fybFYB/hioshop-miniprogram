@@ -1,179 +1,128 @@
-var util = require('../../../utils/util.js');
-var api = require('../../../config/api.js');
+const util = require('../../../utils/util.js');
+const api = require('../../../config/api.js');
 const session = require('../../../utils/session.js');
+
+const DEFAULT_AVATAR = '/images/icon/default_avatar_big.png';
+
+function normalizeMobile(value) {
+  return String(value || '').replace(/\s+/g, '').trim();
+}
+
+function isValidMobile(value) {
+  return /^1[3-9]\d{9}$/.test(normalizeMobile(value));
+}
+
+function maskMobile(value) {
+  const mobile = normalizeMobile(value);
+  if (!isValidMobile(mobile)) {
+    return '未授权';
+  }
+  return `${mobile.slice(0, 3)}****${mobile.slice(-4)}`;
+}
+
+function normalizeProfile(raw) {
+  const source = raw || {};
+  return {
+    nickname: String(source.nickname || source.nickName || '').trim(),
+    mobile: normalizeMobile(source.mobile),
+    avatar: source.avatar || DEFAULT_AVATAR
+  };
+}
 
 Page({
   data: {
     nickName: '',
     mobile: '',
-    avatarUrl: '/images/icon/default_avatar_big.png',
-    avatarDisplayUrl: '/images/icon/default_avatar_big.png',
-    hasAvatar: 0,
-    root: api.ApiRoot,
-    phoneAuthorized: false
-  },
-  onGetPhoneNumber(e) {
-    const detail = e.detail || {};
-    const requestPayload = {};
-    if (detail.code) {
-      requestPayload.code = detail.code;
+    mobileDisplay: '未授权',
+    avatarUrl: DEFAULT_AVATAR,
+    avatarDisplayUrl: DEFAULT_AVATAR,
+    showLoginProfileSheet: false,
+    profileForSheet: {
+      nickname: '',
+      mobile: '',
+      avatar: DEFAULT_AVATAR
     }
-    if (detail.encryptedData && detail.iv) {
-      requestPayload.encryptedData = detail.encryptedData;
-      requestPayload.iv = detail.iv;
-    }
-    if (!requestPayload.code && !(requestPayload.encryptedData && requestPayload.iv)) {
-      util.showErrorToast('未获取到微信手机号，可继续手动填写');
-      return;
-    }
-    let that = this;
-    util.request(api.AuthPhoneNumber, requestPayload, 'POST').then(function (res) {
-      if (res.errno === 0 && res.data && res.data.mobile) {
-        that.setData({
-          mobile: res.data.mobile,
-          phoneAuthorized: true
-        });
-        util.showSuccessToast('已自动填充微信手机号');
-      } else {
-        util.showErrorToast(res.errmsg || '获取手机号失败，请手动填写');
-      }
-    }).catch(function () {
-      util.showErrorToast('获取手机号失败，请手动填写');
-    });
   },
-  onChooseAvatar(e) {
-    const previousAvatar = this.data.avatarUrl || '/images/icon/default_avatar_big.png';
-    const { avatarUrl } = e.detail || {};
-    if (!avatarUrl) {
-      util.showErrorToast('未选择头像');
-      return;
-    }
-    this.setData({
-      avatarUrl,
-      avatarDisplayUrl: util.normalizeImageUrl(avatarUrl, api.ApiRoot),
-    })
-    let that = this;
-    wx.uploadFile({
-      url: api.UploadAvatar,
-      filePath: avatarUrl,
-      name: 'upload_file',
-      header: {
-        'X-Hioshop-Token': wx.getStorageSync('token')
-      },
-      formData: {
-        // 'userId': 'test'
-      },
-      success(res) {
-        try {
-          const payload = res && res.data ? JSON.parse(res.data) : {};
-          if (res.statusCode !== 200 || payload.errno !== 0 || !payload.data || !payload.data.fileUrl) {
-            throw new Error((payload && payload.errmsg) || '头像上传失败');
-          }
-          const uploadedAvatar = payload.data.fileUrl;
-          const localUserInfo = wx.getStorageSync('userInfo') || {};
-          localUserInfo.avatar = uploadedAvatar;
-          wx.setStorageSync('userInfo', localUserInfo);
-          that.setData({
-            avatarUrl: uploadedAvatar,
-            avatarDisplayUrl: util.normalizeImageUrl(uploadedAvatar, api.ApiRoot),
-            hasAvatar: 1
-          });
-          util.showSuccessToast('头像已更新');
-        } catch (error) {
-          that.setData({
-            avatarUrl: previousAvatar,
-            avatarDisplayUrl: util.normalizeImageUrl(previousAvatar, api.ApiRoot),
-          });
-          util.showErrorToast(error.message || '头像上传失败');
-        }
-      },
-      fail() {
-        that.setData({
-          avatarUrl: previousAvatar,
-          avatarDisplayUrl: util.normalizeImageUrl(previousAvatar, api.ApiRoot),
-        });
-        util.showErrorToast('头像上传失败');
-      }
-    })
-  },
-  mobilechange(e) {
-    let mobile = e.detail.value;
-    this.setData({
-      mobile: mobile,
-    });
-  },
-  bindinputNickName(event) {
-    let nickName = event.detail.value;
-    this.setData({
-      nickName: nickName,
-    });
-  },
-  getSettingsDetail() {
-    let that = this;
-    util.request(api.SettingsDetail).then(function (res) {
-      if (res.errno === 0) {
-        that.setData({
-          mobile: res.data.mobile,
-          nickName: res.data.nickname,
-          hasAvatar: 0
-        });
-        if (res.data.avatar != '') {
-          that.setData({
-            avatarUrl: res.data.avatar,
-            avatarDisplayUrl: util.normalizeImageUrl(res.data.avatar, api.ApiRoot),
-            hasAvatar: 1
-          })
-        } else {
-          that.setData({
-            avatarDisplayUrl: '/images/icon/default_avatar_big.png'
-          })
-        }
-        that.setData({
-          phoneAuthorized: !!res.data.mobile
-        });
-        session.syncProfileCompleted(res.data);
-      }
-    });
-  },
-  onLoad: function (options) {
+  onLoad() {
+    this.hydrateFromStorage();
     this.getSettingsDetail();
   },
-  saveInfo() {
-    let mobile = String(this.data.mobile || '').replace(/(^\s*)|(\s*$)/g, "");
-    if (!mobile) {
-      return util.showErrorToast('请输入手机号');
-    }
-    if (!/^1[3-9]\d{9}$/.test(mobile)) {
-      return util.showErrorToast('手机号码有问题');
-    }
-    let avatar = this.data.avatarUrl;
-    let nickName = this.data.nickName;
-    nickName = nickName.replace(/(^\s*)|(\s*$)/g, "");
-    if (nickName == '') {
-      util.showErrorToast('请输入昵称');
-      return false;
-    }
-    util.request(api.SaveSettings, {
-      name: '',
-      mobile: mobile,
-      nickName: nickName,
-      avatar: avatar,
-    }, 'POST').then(function (res) {
-      if (res.errno === 0) {
-        const savedProfile = {
-          nickname: nickName,
-          mobile: mobile,
-          avatar: avatar
-        };
-        const localUserInfo = wx.getStorageSync('userInfo') || {};
-        wx.setStorageSync('userInfo', Object.assign({}, localUserInfo, {
-          nickname: nickName,
-          avatar: avatar
-        }));
-        session.syncProfileCompleted(savedProfile);
-        util.showSuccessToast('保存成功');
-        wx.navigateBack()
+  onShow() {
+    this.hydrateFromStorage();
+    this.getSettingsDetail();
+  },
+  hydrateFromStorage() {
+    const cachedUserInfo = wx.getStorageSync('userInfo') || {};
+    const profile = normalizeProfile(cachedUserInfo);
+    this.applyProfileToView(profile);
+  },
+  applyProfileToView(profile) {
+    const normalized = normalizeProfile(profile);
+    this.setData({
+      nickName: normalized.nickname,
+      mobile: normalized.mobile,
+      mobileDisplay: maskMobile(normalized.mobile),
+      avatarUrl: normalized.avatar,
+      avatarDisplayUrl: util.normalizeImageUrl(normalized.avatar, api.ApiRoot),
+      profileForSheet: {
+        nickname: normalized.nickname,
+        mobile: normalized.mobile,
+        avatar: normalized.avatar
       }
     });
   },
-})
+  syncToStorage(profile) {
+    const normalized = normalizeProfile(profile);
+    const cachedUserInfo = wx.getStorageSync('userInfo') || {};
+    wx.setStorageSync('userInfo', Object.assign({}, cachedUserInfo, {
+      nickname: normalized.nickname,
+      mobile: normalized.mobile,
+      avatar: normalized.avatar
+    }));
+  },
+  getSettingsDetail() {
+    const that = this;
+    util.request(api.SettingsDetail).then(function(res) {
+      if (res.errno !== 0 || !res.data) {
+        return;
+      }
+      const profile = normalizeProfile(res.data);
+      that.applyProfileToView(profile);
+      that.syncToStorage(profile);
+      session.syncProfileCompleted(profile);
+    }).catch(function(err) {
+      // 本地优先展示，接口失败时保持本地回显
+      if (err && err.code === 'UNAUTHORIZED') {
+        session.setProfileCompleted(false);
+      }
+    });
+  },
+  openProfileSheet() {
+    if (!this.data.profileForSheet || (!this.data.profileForSheet.nickname && !this.data.profileForSheet.mobile)) {
+      this.hydrateFromStorage();
+    }
+    this.setData({
+      showLoginProfileSheet: true
+    });
+  },
+  onProfileSheetCancel() {
+    this.setData({
+      showLoginProfileSheet: false
+    });
+  },
+  onProfileSheetSuccess(e) {
+    const profile = normalizeProfile((e.detail && e.detail.profile) || {});
+    this.setData({
+      showLoginProfileSheet: false
+    });
+    this.applyProfileToView(profile);
+    this.syncToStorage(profile);
+    session.syncProfileCompleted(profile);
+
+    // 异步刷新后端一致性，不阻塞当前 UI
+    this.getSettingsDetail();
+  },
+  goBack() {
+    wx.navigateBack();
+  }
+});

@@ -114,7 +114,11 @@ Page({
             id: id
         }, 'POST', { page: that }).then(function(res) {
             if (res.errno === 0) {
-                const incoming = Array.isArray(res.data.data) ? res.data.data : [];
+                const incoming = Array.isArray(res.data.data) ? res.data.data.map((item) => {
+                    const next = Object.assign({}, item);
+                    next.list_pic_url = util.optimizeProductListImage(item && item.list_pic_url);
+                    return next;
+                }) : [];
                 const mergedList = that.data.list.concat(incoming);
                 const count = Number(res.data.count || 0);
                 const currentPage = Number(res.data.currentPage || targetPage || 1);

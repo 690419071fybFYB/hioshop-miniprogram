@@ -27,8 +27,23 @@ Page({
         showContact: 1,
         hasError: false,
         errorMessage: '',
+        catalogPageCount: 1,
+        catalogPages: [0],
+        currentCatalogPage: 0,
         uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
         vantEnabled: !!api.features.vantEnabled
+    },
+    mapCouponItem(item, needLoginToReceive) {
+        const hasReceived = Number(item && item.has_received) === 1;
+        return {
+            ...item,
+            ruleText: this.formatCouponRule(item),
+            amountText: item.type === 'full_reduction' ? `${item.reduce_amount}元` : `${item.discount_rate}折`,
+            limitText: Number(item.threshold_amount || 0) > 0 ? `满${item.threshold_amount}可用` : '无门槛',
+            needLoginToReceive: !!needLoginToReceive,
+            actionText: hasReceived ? '已领取' : (needLoginToReceive ? '登录后领取' : '立即领取'),
+            actionDisabled: hasReceived
+        };
     },
     formatCouponRule(coupon) {
         if (!coupon) return '';
@@ -40,27 +55,14 @@ Page({
     getCouponList: function () {
         const that = this;
         const token = wx.getStorageSync('token') || '';
-        if (!token) {
-            that.setData({
-                couponList: [],
-                couponLoading: false,
-                couponNeedLogin: true,
-                couponSectionReady: true
-            });
-            return;
-        }
+        const needLoginToReceive = !token;
         that.setData({ couponLoading: true, couponSectionReady: false });
-        util.request(api.CouponCenter, {}, 'GET', { page: that, silent401: true }).then(function (res) {
+        util.request(api.CouponCenter, {}, 'GET', { page: that, silent401: true, timeout: 5000, retry: 0 }).then(function (res) {
             if (res.errno === 0) {
-                const list = (res.data || []).slice(0, 4).map((item) => ({
-                    ...item,
-                    ruleText: that.formatCouponRule(item),
-                    amountText: item.type === 'full_reduction' ? `${item.reduce_amount}元` : `${item.discount_rate}折`,
-                    limitText: Number(item.threshold_amount || 0) > 0 ? `满${item.threshold_amount}可用` : '无门槛'
-                }));
+                const list = (res.data || []).slice(0, 4).map((item) => that.mapCouponItem(item, needLoginToReceive));
                 that.setData({
                     couponList: list,
-                    couponNeedLogin: false,
+                    couponNeedLogin: needLoginToReceive,
                     couponSectionReady: true
                 });
                 return;
@@ -71,10 +73,9 @@ Page({
                 couponSectionReady: true
             });
         }).catch(function (err) {
-            const unauthorized = err && err.code === 'UNAUTHORIZED';
             that.setData({
                 couponList: [],
-                couponNeedLogin: unauthorized,
+                couponNeedLogin: false,
                 couponSectionReady: true
             });
         }).finally(function () {
@@ -99,6 +100,14 @@ Page({
             util.showErrorToast('优惠券参数错误');
             return;
         }
+        const token = wx.getStorageSync('token') || '';
+        if (!token) {
+            util.showErrorToast('请先登录后领取优惠券');
+            wx.switchTab({
+                url: '/pages/ucenter/index/index'
+            });
+            return;
+        }
         const that = this;
         util.request(api.CouponReceive, { couponId }, 'POST', { page: that, silent401: true }).then(function (res) {
             if (res.errno === 0) {
@@ -109,7 +118,10 @@ Page({
             util.showErrorToast(res.errmsg || '领取失败');
         }).catch(function (err) {
             if (err && err.code === 'UNAUTHORIZED') {
-                util.showErrorToast('请先登录');
+                util.showErrorToast('请先登录后领取优惠券');
+                wx.switchTab({
+                    url: '/pages/ucenter/index/index'
+                });
                 return;
             }
             util.showErrorToast((err && err.message) || '领取失败');
@@ -166,13 +178,19 @@ Page({
     },
     getIndexData: function () {
         let that = this;
-        util.request(api.IndexUrl, {}, 'GET', { page: that }).then(function (res) {
+        util.request(api.IndexUrl, {}, 'GET', { page: that, timeout: 5000, retry: 0 }).then(function (res) {
             if (res.errno === 0) {
+                const channelList = Array.isArray(res.data.channel) ? res.data.channel : [];
+                const pageCount = Math.max(1, Math.ceil(channelList.length / 6));
+                const catalogPages = Array.from({ length: pageCount }, (_, i) => i);
                 that.setData({
                     floorGoods: res.data.categoryList,
                     banner: res.data.banner,
-                    channel: res.data.channel,
+                    channel: channelList,
                     notice: res.data.notice,
+                    catalogPageCount: pageCount,
+                    catalogPages: catalogPages,
+                    currentCatalogPage: 0,
                     loading: 1,
                     hasError: false,
                     errorMessage: ''
@@ -203,6 +221,12 @@ Page({
             util.showErrorToast(that.data.errorMessage);
         });
     },
+    onCatalogSwiperChange: function (e) {
+        const current = Number(e && e.detail ? e.detail.current : 0);
+        this.setData({
+            currentCatalogPage: Number.isNaN(current) ? 0 : current
+        });
+    },
 
     onShow: function () {
         this.getIndexData();
@@ -224,7 +248,7 @@ Page({
     },
     getChannelShowInfo: function (e) {
         let that = this;
-        util.request(api.ShowSettings, {}, 'GET', { page: that }).then(function (res) {
+        util.request(api.ShowSettings, {}, 'GET', { page: that, timeout: 5000, retry: 0 }).then(function (res) {
             if (res.errno === 0) {
                 let show_channel = res.data.channel;
                 let show_banner = res.data.banner;

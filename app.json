@@ -1,6 +1,7 @@
 {
     "pages": [
         "pages/index/index",
+        "pages/debug/network/index",
         "pages/app-auth/index",
         "pages/category/index",
         "pages/cart/cart",
@@ -63,14 +64,6 @@
             }
         ]
     },
-    "lazyCodeLoading": "requiredComponents",
     "sitemapLocation": "sitemap.json",
-    "usingComponents": {
-        "van-button": "@vant/weapp/button/index",
-        "van-empty": "@vant/weapp/empty/index",
-        "van-loading": "@vant/weapp/loading/index",
-        "van-tag": "@vant/weapp/tag/index",
-        "van-cell": "@vant/weapp/cell/index",
-        "van-cell-group": "@vant/weapp/cell-group/index"
-    }
+    "lazyCodeLoading": "requiredComponents"
 }

@@ -1,8 +1,25 @@
 const LOG_KEY = 'telemetry_logs';
 const MAX_LOGS = 100;
+let cachedPlatform = '';
 
 function now() {
   return Date.now();
+}
+
+function getPlatform() {
+  if (cachedPlatform) return cachedPlatform;
+  try {
+    const sys = wx.getSystemInfoSync();
+    cachedPlatform = (sys && sys.platform) || '';
+  } catch (e) {
+    cachedPlatform = '';
+  }
+  return cachedPlatform;
+}
+
+function isDeviceRuntime() {
+  const platform = getPlatform();
+  return platform === 'ios' || platform === 'android';
 }
 
 function getCurrentRoute() {
@@ -29,6 +46,7 @@ function getNetworkTypeSafe() {
 }
 
 function persist(log) {
+  if (isDeviceRuntime()) return;
   try {
     const list = wx.getStorageSync(LOG_KEY) || [];
     list.unshift(log);
@@ -46,7 +64,9 @@ function track(event, payload) {
     payload: payload || {}
   };
   persist(log);
-  console.warn('[telemetry]', log);
+  if (!isDeviceRuntime()) {
+    console.warn('[telemetry]', log);
+  }
 }
 
 async function trackRequest(payload) {

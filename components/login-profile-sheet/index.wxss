@@ -1,33 +1,45 @@
 .sheet {
   height: 100%;
-  padding: 32rpx 28rpx calc(40rpx + env(safe-area-inset-bottom));
+  padding: 32rpx 24rpx calc(32rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
-  background: #fff;
+  background: linear-gradient(180deg, #fff7f9 0%, #ffffff 36%);
+}
+
+.sheet-header {
+  text-align: center;
 }
 
 .sheet-title {
-  font-size: 34rpx;
-  line-height: 48rpx;
-  font-weight: 600;
-  color: #1f2533;
-  text-align: center;
+  font-size: 38rpx;
+  line-height: 52rpx;
+  font-weight: 700;
+  color: #1f2430;
 }
 
 .sheet-subtitle {
-  margin-top: 10rpx;
-  text-align: center;
-  color: #8d96a7;
+  margin-top: 8rpx;
+  color: #8c7380;
   font-size: 24rpx;
+  line-height: 34rpx;
+}
+
+.sheet-card {
+  margin-top: 22rpx;
+  border-radius: 24rpx;
+  background: #fff;
+  border: 1rpx solid #ffe4ea;
+  box-shadow: 0 10rpx 24rpx rgba(237, 86, 126, 0.08);
+  padding: 20rpx;
 }
 
 .avatar-wrap {
-  margin-top: 24rpx;
+  margin-top: 8rpx;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  justify-content: center;
 }
 
 .avatar-btn {
+  position: relative;
   padding: 0;
   border: none;
   background: transparent;
@@ -39,30 +51,39 @@
 }
 
 .avatar {
-  width: 118rpx;
-  height: 118rpx;
+  width: 128rpx;
+  height: 128rpx;
   border-radius: 50%;
-  border: 2rpx solid #ffd9e2;
+  border: 4rpx solid #ffe0e8;
   background: #fff;
 }
 
-.avatar-tip {
-  margin-top: 10rpx;
-  font-size: 22rpx;
-  line-height: 30rpx;
-  color: #8b5a66;
+.avatar-edit {
+  position: absolute;
+  right: -8rpx;
+  bottom: -4rpx;
+  min-width: 56rpx;
+  padding: 0 10rpx;
+  height: 34rpx;
+  line-height: 34rpx;
+  border-radius: 18rpx;
+  background: #ff4d72;
+  color: #fff;
+  font-size: 20rpx;
+  text-align: center;
 }
 
 .form {
-  margin-top: 16rpx;
+  margin-top: 20rpx;
   border-radius: 16rpx;
-  background: #fafbfe;
-  padding: 0 20rpx;
+  background: #fff8fa;
+  padding: 0 18rpx;
+  border: 1rpx solid #ffeaf0;
 }
 
 .field {
-  border-bottom: 1rpx solid #eceff6;
-  padding: 22rpx 0;
+  border-bottom: 1rpx solid #f6dfe6;
+  padding: 20rpx 0;
 }
 
 .field:last-child {
@@ -70,58 +91,114 @@
 }
 
 .label {
-  font-size: 24rpx;
-  color: #596273;
-  margin-bottom: 10rpx;
-}
-
-.input {
-  height: 44rpx;
-  line-height: 44rpx;
-  font-size: 28rpx;
-  color: #1f2533;
+  font-size: 25rpx;
+  font-weight: 600;
+  color: #4e3340;
+  margin-bottom: 12rpx;
 }
 
 .input-wrap {
   position: relative;
+  border: 2rpx solid #f1d4dd;
+  border-radius: 14rpx;
+  background: #fff;
+  padding: 0 20rpx;
 }
 
-.field-action-btn {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: transparent;
-  padding: 0;
+.input {
+  height: 76rpx;
+  line-height: 76rpx;
+  font-size: 30rpx;
+  color: #1f2533;
 }
 
-.field-action-btn::after {
+.phone-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 64rpx;
+}
+
+.phone-label {
+  font-size: 28rpx;
+  color: #3f3440;
+  font-weight: 600;
+}
+
+.phone-auth-btn {
+  height: 56rpx;
+  line-height: 56rpx;
+  border-radius: 28rpx;
+  padding: 0 26rpx;
+  background: linear-gradient(135deg, #f05a7e, #de4b73);
+  color: #fff;
+  font-size: 24rpx;
+}
+
+.phone-auth-btn::after {
   border: none;
 }
 
-.pseudo-input {
-  color: #8d96a7;
+.phone-authorized {
+  min-width: 92rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  border-radius: 20rpx;
+  text-align: center;
+  background: #e9f8ef;
+  color: #2e9457;
+  font-size: 22rpx;
+  padding: 0 12rpx;
 }
 
-.field-helper {
-  margin-top: 10rpx;
+.phone-helper {
+  margin-top: 8rpx;
   font-size: 22rpx;
-  color: #8b5a66;
+  color: #976776;
   line-height: 30rpx;
 }
 
+.phone-manual-toggle,
+.phone-manual-collapse {
+  margin-top: 10rpx;
+  color: #d84d72;
+  font-size: 24rpx;
+  line-height: 34rpx;
+}
+
+.manual-input-wrap {
+  margin-top: 12rpx;
+}
+
+.actions {
+  margin-top: 24rpx;
+}
+
 .submit-btn {
-  margin-top: 28rpx;
-  height: 84rpx;
-  line-height: 84rpx;
-  border-radius: 14rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 44rpx;
   color: #fff;
-  background: linear-gradient(135deg, #e74f72, #cf3a5d);
+  background: linear-gradient(135deg, #e95579, #cf3a5d);
   font-size: 30rpx;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .submit-btn::after {
   border: none;
+}
+
+.actions-tip {
+  margin-top: 14rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: #998089;
+}
+
+.cancel-btn {
+  margin-top: 14rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #ba7f8d;
+  line-height: 34rpx;
 }

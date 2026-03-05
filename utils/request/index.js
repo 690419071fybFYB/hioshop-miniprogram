@@ -1,9 +1,10 @@
 const api = require('../../config/api.js');
 const telemetry = require('../telemetry.js');
 const session = require('../session.js');
+const debugLog = require('../debug-log.js');
 
-const DEFAULT_TIMEOUT = 10000;
-const DEFAULT_RETRY = 2;
+const DEFAULT_TIMEOUT = 6000;
+const DEFAULT_RETRY = 1;
 let isRefreshingToken = false;
 
 function sleep(ms) {
@@ -12,6 +13,11 @@ function sleep(ms) {
 
 function useTelemetry() {
   return !api.features || api.features.telemetry !== false;
+}
+
+function trackRequestSafe(payload) {
+  if (!useTelemetry()) return;
+  Promise.resolve(telemetry.trackRequest(payload)).catch(function () {});
 }
 
 function normalizeError(err, ctx) {
@@ -128,31 +134,34 @@ async function request(url, data, method, options) {
           source: 'page-guard',
           traceId: ''
         };
-        if (useTelemetry()) {
-          await telemetry.trackRequest({
-            url,
-            method: reqMethod,
-            success: false,
-            code: canceled.code,
-            duration: Date.now() - startedAt,
-            attempt
-          });
-        }
+        trackRequestSafe({
+          url,
+          method: reqMethod,
+          success: false,
+          code: canceled.code,
+          duration: Date.now() - startedAt,
+          attempt
+        });
         return Promise.reject(canceled);
       }
 
       if (res.statusCode !== 200) {
         const err = normalizeError({ errMsg: 'http status ' + res.statusCode }, { source: 'http' });
-        if (useTelemetry()) {
-          await telemetry.trackRequest({
-            url,
-            method: reqMethod,
-            success: false,
-            code: err.code,
-            duration: Date.now() - startedAt,
-            attempt
-          });
-        }
+        debugLog.append('request_http_error', {
+          url,
+          method: reqMethod,
+          route: pageRoute,
+          statusCode: res.statusCode,
+          duration: Date.now() - startedAt
+        });
+        trackRequestSafe({
+          url,
+          method: reqMethod,
+          success: false,
+          code: err.code,
+          duration: Date.now() - startedAt,
+          attempt
+        });
         return Promise.reject(err);
       }
 
@@ -164,16 +173,22 @@ async function request(url, data, method, options) {
           continue;
         }
         clearSession();
-        if (useTelemetry()) {
-          await telemetry.trackRequest({
-            url,
-            method: reqMethod,
-            success: false,
-            code: 'UNAUTHORIZED',
-            duration: Date.now() - startedAt,
-            attempt
-          });
-        }
+        debugLog.append('request_unauthorized', {
+          url,
+          method: reqMethod,
+          route: pageRoute,
+          errno: body.errno,
+          errmsg: body.errmsg || '',
+          duration: Date.now() - startedAt
+        });
+        trackRequestSafe({
+          url,
+          method: reqMethod,
+          success: false,
+          code: 'UNAUTHORIZED',
+          duration: Date.now() - startedAt,
+          attempt
+        });
         return Promise.reject({
           code: 'UNAUTHORIZED',
           message: body.errmsg || 'login expired',
@@ -183,16 +198,22 @@ async function request(url, data, method, options) {
         });
       }
       if (body.errno === 412 && !opts.skipProfileGuard) {
-        if (useTelemetry()) {
-          await telemetry.trackRequest({
-            url,
-            method: reqMethod,
-            success: false,
-            code: 'PROFILE_INCOMPLETE',
-            duration: Date.now() - startedAt,
-            attempt
-          });
-        }
+        debugLog.append('request_profile_incomplete', {
+          url,
+          method: reqMethod,
+          route: pageRoute,
+          errno: body.errno,
+          errmsg: body.errmsg || '',
+          duration: Date.now() - startedAt
+        });
+        trackRequestSafe({
+          url,
+          method: reqMethod,
+          success: false,
+          code: 'PROFILE_INCOMPLETE',
+          duration: Date.now() - startedAt,
+          attempt
+        });
         return Promise.reject({
           code: 'PROFILE_INCOMPLETE',
           message: body.errmsg || 'profile incomplete',
@@ -202,16 +223,14 @@ async function request(url, data, method, options) {
         });
       }
 
-      if (useTelemetry()) {
-        await telemetry.trackRequest({
-          url,
-          method: reqMethod,
-          success: true,
-          code: 'OK',
-          duration: Date.now() - startedAt,
-          attempt
-        });
-      }
+      trackRequestSafe({
+        url,
+        method: reqMethod,
+        success: true,
+        code: 'OK',
+        duration: Date.now() - startedAt,
+        attempt
+      });
       return body;
     } catch (err) {
       const normalized = normalizeError(err, { source: 'wx.request' });
@@ -220,16 +239,23 @@ async function request(url, data, method, options) {
         attempt += 1;
         continue;
       }
-      if (useTelemetry()) {
-        await telemetry.trackRequest({
-          url,
-          method: reqMethod,
-          success: false,
-          code: normalized.code,
-          duration: Date.now() - startedAt,
-          attempt
-        });
-      }
+      trackRequestSafe({
+        url,
+        method: reqMethod,
+        success: false,
+        code: normalized.code,
+        duration: Date.now() - startedAt,
+        attempt
+      });
+      debugLog.append('request_fail', {
+        url,
+        method: reqMethod,
+        route: pageRoute,
+        code: normalized.code,
+        message: normalized.message,
+        retriable: normalized.retriable,
+        duration: Date.now() - startedAt
+      });
       return Promise.reject(normalized);
     }
   }
