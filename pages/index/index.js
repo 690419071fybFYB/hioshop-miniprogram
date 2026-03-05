@@ -9,6 +9,7 @@ const app = getApp()
 Page({
     data: {
         floorGoods: [],
+        promotionGoods: [],
         couponList: [],
         couponLoading: false,
         couponNeedLogin: false,
@@ -28,7 +29,49 @@ Page({
         hasError: false,
         errorMessage: '',
         uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
-        vantEnabled: !!api.features.vantEnabled
+        vantEnabled: !!api.features.vantEnabled,
+        promotionV1: !!api.features.promotionV1
+    },
+    formatCountdown(seconds) {
+        const total = Math.max(0, Number(seconds || 0));
+        const h = Math.floor(total / 3600);
+        const m = Math.floor((total % 3600) / 60);
+        const s = total % 60;
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${pad(h)}:${pad(m)}:${pad(s)}`;
+    },
+    normalizeGoodsPromo(item) {
+        const goods = Object.assign({}, item || {});
+        const minRetail = Number(goods.min_retail_price || goods.retail_price || 0);
+        const hasPromo = Number(goods.has_promo || 0) === 1 || Number(goods.has_coupon_promo || 0) === 1;
+        goods.has_promo = hasPromo ? 1 : 0;
+        goods.promo_price = hasPromo ? (goods.promo_price || minRetail) : minRetail;
+        goods.original_price = hasPromo ? (goods.original_price || minRetail) : minRetail;
+        goods.promo_tag = goods.promo_tag || '';
+        goods.promo_source = goods.promo_source || 'none';
+        goods.promo_type = goods.promo_type || '';
+        goods.promo_end_at = Number(goods.promo_end_at || 0);
+        goods.promo_countdown_seconds = Math.max(0, Number(goods.promo_countdown_seconds || 0));
+        goods.promo_stock_percent = Number(goods.promo_stock_percent || 0);
+        goods.promo_countdown_text = goods.promo_countdown_seconds > 0 ? this.formatCountdown(goods.promo_countdown_seconds) : '';
+        return goods;
+    },
+    buildPromotionGoods(categoryList) {
+        const result = [];
+        (categoryList || []).forEach((category) => {
+            (category.goodsList || []).forEach((goods) => {
+                if (Number(goods.has_promo || 0) !== 1) return;
+                if (goods.promo_source !== 'promotion') return;
+                result.push(goods);
+            });
+        });
+        result.sort((a, b) => {
+            const ca = Number(a.promo_countdown_seconds || 0);
+            const cb = Number(b.promo_countdown_seconds || 0);
+            if (ca === cb) return Number(a.id || 0) - Number(b.id || 0);
+            return ca - cb;
+        });
+        return result.slice(0, 10);
     },
     formatCouponRule(coupon) {
         if (!coupon) return '';
@@ -168,8 +211,16 @@ Page({
         let that = this;
         util.request(api.IndexUrl, {}, 'GET', { page: that }).then(function (res) {
             if (res.errno === 0) {
+                const categoryList = (res.data.categoryList || []).map((category) => {
+                    const goodsList = (category.goodsList || []).map((goods) => that.normalizeGoodsPromo(goods));
+                    return Object.assign({}, category, {
+                        goodsList
+                    });
+                });
+                const promotionGoods = that.buildPromotionGoods(categoryList);
                 that.setData({
-                    floorGoods: res.data.categoryList,
+                    floorGoods: categoryList,
+                    promotionGoods: promotionGoods,
                     banner: res.data.banner,
                     channel: res.data.channel,
                     notice: res.data.notice,

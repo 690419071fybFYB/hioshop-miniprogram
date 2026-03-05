@@ -13,7 +13,8 @@ const features = {
   newStore: true,
   telemetry: true,
   newUiV2: false,
-  vantEnabled: false
+  vantEnabled: false,
+  promotionV1: true
 };
 
 module.exports = {

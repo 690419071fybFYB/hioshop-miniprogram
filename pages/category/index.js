@@ -24,6 +24,16 @@ Page({
         uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
         vantEnabled: !!api.features.vantEnabled
     },
+    normalizeGoodsPromo(item) {
+        const goods = Object.assign({}, item || {});
+        const minRetail = Number(goods.min_retail_price || goods.retail_price || 0);
+        const hasPromo = Number(goods.has_promo || 0) === 1 || Number(goods.has_coupon_promo || 0) === 1;
+        goods.has_promo = hasPromo ? 1 : 0;
+        goods.promo_price = hasPromo ? (goods.promo_price || minRetail) : minRetail;
+        goods.original_price = hasPromo ? (goods.original_price || minRetail) : minRetail;
+        goods.promo_tag = goods.promo_tag || '';
+        return goods;
+    },
     onLoad: function(options) {
     },
     onReady: function() {
@@ -114,7 +124,7 @@ Page({
             id: id
         }, 'POST', { page: that }).then(function(res) {
             if (res.errno === 0) {
-                const incoming = Array.isArray(res.data.data) ? res.data.data : [];
+                const incoming = (Array.isArray(res.data.data) ? res.data.data : []).map((item) => that.normalizeGoodsPromo(item));
                 const mergedList = that.data.list.concat(incoming);
                 const count = Number(res.data.count || 0);
                 const currentPage = Number(res.data.currentPage || targetPage || 1);

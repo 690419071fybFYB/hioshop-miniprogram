@@ -45,9 +45,9 @@
                                 <view class="goods-intro">{{item.goods_brief}}</view>
                                 <view class='price-container'>
                                     <view class='l'>
-                                        <view class='h'>￥{{item.has_coupon_promo ? item.promo_price : item.min_retail_price}}</view>
-                                        <view class='promo-origin' wx:if="{{item.has_coupon_promo}}">￥{{item.original_price}}</view>
-                                        <view class='promo-tag' wx:if="{{item.has_coupon_promo && item.promo_tag}}">{{item.promo_tag}}</view>
+                                        <view class='h'>￥{{item.has_promo ? item.promo_price : item.min_retail_price}}</view>
+                                        <view class='promo-origin' wx:if="{{item.has_promo}}">￥{{item.original_price}}</view>
+                                        <view class='promo-tag' wx:if="{{item.has_promo && item.promo_tag}}">{{item.promo_tag}}</view>
                                     </view>
                                 </view>
                             </view>

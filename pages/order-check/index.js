@@ -10,11 +10,15 @@ Page({
         goodsTotalPrice: 0.00, //商品总价
         freightPrice: 0.00, //快递费
         couponPrice: 0.00, //优惠券抵扣
+        promotionPrice: 0.00, //促销优惠
         orderTotalPrice: 0.00, //订单总价
         actualPrice: 0.00, //实际需要支付的总价
         couponCandidates: [],
         selectedCoupons: [],
         selectedUserCouponIds: [],
+        promotionDetail: [],
+        appliedDiscountType: 'none',
+        mutualExclusionReason: '',
         addressId: 0,
         goodsCount: 0,
         postscript: '',
@@ -32,6 +36,11 @@ Page({
         payMethod:1,
         hasError: false,
         errorMessage: ''
+    },
+    normalizeCouponIds(value) {
+        if (!Array.isArray(value)) return [];
+        const ids = value.map((item) => Number(item)).filter((item) => item > 0);
+        return Array.from(new Set(ids));
     },
     payChange(e){
         let val = e.detail.value;
@@ -92,16 +101,16 @@ Page({
             if (addressId == 0 || addressId == '') {
                 addressId = 0;
             }
-            let selectedUserCouponIds = wx.getStorageSync('selectedUserCouponIds') || [];
-            if (!Array.isArray(selectedUserCouponIds)) {
-                selectedUserCouponIds = [];
-            }
+            let selectedUserCouponIds = this.normalizeCouponIds(wx.getStorageSync('selectedUserCouponIds') || []);
             this.setData({
                 'addressId': addressId,
                 selectedUserCouponIds: selectedUserCouponIds
+            }, () => {
+                this.getCheckoutInfo();
             });
-        } catch (e) {}
-        this.getCheckoutInfo();
+        } catch (e) {
+            this.getCheckoutInfo();
+        }
     },
     onPullDownRefresh: function () {
         wx.showNavigationBarLoading()
@@ -125,7 +134,7 @@ Page({
         let addressId = that.data.addressId;
         let orderFrom = that.data.orderFrom;
         let addType = that.data.addType;
-        let selectedUserCouponIds = that.data.selectedUserCouponIds || [];
+        let selectedUserCouponIds = that.normalizeCouponIds(that.data.selectedUserCouponIds || []);
         util.request(api.CartCheckout, {
             addressId: addressId,
             addType: addType,
@@ -138,7 +147,10 @@ Page({
                 if (res.data.checkedAddress != 0) {
                     addressId = res.data.checkedAddress.id;
                 }
-                const nextSelectedIds = (res.data.selectedCoupons || []).map((item) => Number(item.user_coupon_id));
+                const incomingSelectedIds = (res.data.selectedCoupons || []).map((item) => Number(item.user_coupon_id)).filter((item) => item > 0);
+                const invalidSelectedIds = that.normalizeCouponIds(res.data.invalidSelectedIds || []);
+                const nextSelectedIds = (incomingSelectedIds.length > 0 ? incomingSelectedIds : selectedUserCouponIds)
+                    .filter((id) => invalidSelectedIds.indexOf(id) === -1);
                 that.setData({
                     checkedGoodsList: res.data.checkedGoodsList,
                     checkedAddress: res.data.checkedAddress,
@@ -146,9 +158,13 @@ Page({
                     addressId: addressId,
                     freightPrice: res.data.freightPrice,
                     couponPrice: res.data.couponPrice || 0,
+                    promotionPrice: res.data.promotionPrice || 0,
                     couponCandidates: res.data.couponCandidates || [],
                     selectedCoupons: res.data.selectedCoupons || [],
                     selectedUserCouponIds: nextSelectedIds,
+                    promotionDetail: res.data.promotionDetail || [],
+                    appliedDiscountType: res.data.appliedDiscountType || 'none',
+                    mutualExclusionReason: res.data.mutualExclusionReason || '',
                     goodsTotalPrice: res.data.goodsTotalPrice,
                     orderTotalPrice: res.data.orderTotalPrice,
                     goodsCount: res.data.goodsCount,
@@ -163,7 +179,7 @@ Page({
                     util.showErrorToast('有部分商品缺货或已下架');
                 } else if (res.data.numberChange == 1) {
                     util.showErrorToast('部分商品库存有变动');
-                } else if ((res.data.invalidSelectedIds || []).length > 0) {
+                } else if (invalidSelectedIds.length > 0) {
                     util.showErrorToast('部分优惠券不可用，已自动移除');
                 }
             }
@@ -178,7 +194,18 @@ Page({
     goSelectCoupon: function () {
         const selectedIds = this.data.selectedUserCouponIds || [];
         wx.navigateTo({
-            url: `/pages/order-coupon/index?addType=${this.data.addType || 0}&orderFrom=${this.data.orderFrom || 0}&selectedIds=${selectedIds.join(',')}`
+            url: `/pages/order-coupon/index?addType=${this.data.addType || 0}&orderFrom=${this.data.orderFrom || 0}&selectedIds=${selectedIds.join(',')}`,
+            success: (res) => {
+                if (!res || !res.eventChannel) return;
+                res.eventChannel.on('couponSelected', (payload) => {
+                    const nextIds = this.normalizeCouponIds((payload && payload.selectedIds) || []);
+                    this.setData({
+                        selectedUserCouponIds: nextIds
+                    }, () => {
+                        this.getCheckoutInfo();
+                    });
+                });
+            }
         });
     },
     // TODO 有个bug，用户没选择地址，支付无法继续进行，在切换过token的情况下

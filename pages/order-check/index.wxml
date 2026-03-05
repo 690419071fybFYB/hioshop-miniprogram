@@ -54,8 +54,20 @@
 				<view class="row-label">优惠券</view>
 				<view class="right-text">
 					<text wx:if="{{selectedCoupons.length > 0}}">已选{{selectedCoupons.length}}张，-¥{{couponPrice}}</text>
+					<text wx:elif="{{selectedUserCouponIds.length > 0}}">已选择{{selectedUserCouponIds.length}}张（待比价）</text>
 					<text wx:else>去选择</text>
 				</view>
+			</view>
+			<view class="row-box">
+				<view class="row-label">促销优惠</view>
+				<view class="right-text">
+					<text wx:if="{{promotionPrice > 0}}">-¥{{promotionPrice}}</text>
+					<text wx:else>暂无</text>
+				</view>
+			</view>
+			<view class="row-box row-tip" wx:if="{{mutualExclusionReason}}">
+				<view class="row-label">优惠方案</view>
+				<view class="right-text tip-text">{{mutualExclusionReason}}</view>
 			</view>
 			<view class="memo-box">
 				<view class="row-label">备注：</view>

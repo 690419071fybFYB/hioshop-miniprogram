@@ -49,11 +49,15 @@
         <view class="l">
             <view class="now-price">
                 <view class="sym">¥</view>
-                <view class="num">{{goods.has_coupon_promo ? goods.promo_price : goods.retail_price}}</view>
+                <view class="num">{{goods.has_promo ? goods.promo_price : goods.retail_price}}</view>
             </view>
-            <view class="old-price" wx:if="{{goods.has_coupon_promo}}">
+            <view class="old-price" wx:if="{{goods.has_promo}}">
                 <view class="sym">¥</view>
                 <view class="num">{{goods.original_price}}</view>
+            </view>
+            <view class="promo-tag" wx:if="{{goods.has_promo && goods.promo_tag}}">{{goods.promo_tag}}</view>
+            <view class="promo-countdown" wx:if="{{goods.promo_source == 'promotion' && goodsPromoCountdownText}}">
+                倒计时 {{goodsPromoCountdownText}}
             </view>
         </view>
         <view class="r">
@@ -89,16 +93,16 @@
                         <!-- todo 原价不等于0的时候要补充 -->
                         <view class='retail-price'>
                             <view class='p-title'>零售价：</view>
-                            <view class='g-price'>{{goods.has_coupon_promo ? goods.promo_price : goods.retail_price}}元</view>
+                            <view class='g-price'>{{goods.has_promo ? goods.promo_price : goods.retail_price}}元</view>
                         </view>
-                        <view class='old-price' wx:if="{{goods.has_coupon_promo}}">原价：{{goods.original_price}}元</view>
+                        <view class='old-price' wx:if="{{goods.has_promo}}">原价：{{goods.original_price}}元</view>
                     </view>
                     <view class='price-range' wx:elif="{{priceChecked == true}}">
                         <view class='retail-price'>
                             <view class='p-title'>零售价：</view>
                             <view class='g-price'>{{checkedSpecPromoPrice}}元</view>
                         </view>
-                        <view class='old-price' wx:if="{{checkedSpecHasCouponPromo}}">原价：{{checkedSpecOriginalPrice}}元</view>
+                        <view class='old-price' wx:if="{{checkedSpecHasPromo}}">原价：{{checkedSpecOriginalPrice}}元</view>
                     </view>
                     <view class="a" wx:if="{{productList.length>0}}">{{tmpSpecText}}</view>
                 </view>

@@ -9,6 +9,11 @@ Page({
     selectedIds: [],
     loading: false
   },
+  normalizeIds(value) {
+    if (!Array.isArray(value)) return [];
+    const ids = value.map((item) => Number(item)).filter((item) => item > 0);
+    return Array.from(new Set(ids));
+  },
   onLoad(options) {
     const selectedIds = String(options.selectedIds || '')
       .split(',')
@@ -19,6 +24,9 @@ Page({
       orderFrom: Number(options.orderFrom || 0),
       selectedIds
     });
+  },
+  onUnload() {
+    this.persistSelection();
   },
   onShow() {
     if (!util.loginNow()) return;
@@ -73,8 +81,18 @@ Page({
     this.syncSelection(Array.from(selectedSet), true);
   },
   confirmSelect() {
-    wx.setStorageSync('selectedUserCouponIds', this.data.selectedIds || []);
+    this.persistSelection();
     wx.navigateBack();
+  },
+  persistSelection() {
+    const selectedIds = this.normalizeIds(this.data.selectedIds || []);
+    wx.setStorageSync('selectedUserCouponIds', selectedIds);
+    const eventChannel = this.getOpenerEventChannel && this.getOpenerEventChannel();
+    if (eventChannel && typeof eventChannel.emit === 'function') {
+      eventChannel.emit('couponSelected', {
+        selectedIds
+      });
+    }
   },
   clearSelection() {
     this.setData({ selectedIds: [] });

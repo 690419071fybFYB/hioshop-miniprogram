@@ -331,6 +331,23 @@
     font-size: 20rpx;
 }
 
+.price-info .l .promo-tag {
+    margin-top: 6rpx;
+    display: inline-flex;
+    align-items: center;
+    padding: 4rpx 12rpx;
+    border-radius: 999rpx;
+    background: #fff1f3;
+    color: #ff3456;
+    font-size: 20rpx;
+}
+
+.price-info .l .promo-countdown {
+    margin-top: 6rpx;
+    font-size: 22rpx;
+    color: #a65b5b;
+}
+
 .price-info .r {
     display: flex;
     justify-content: flex-end;

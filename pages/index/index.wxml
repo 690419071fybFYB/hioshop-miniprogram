@@ -42,6 +42,37 @@
             </swiper-item>
         </swiper>
     </view>
+    <view class="promotion-zone" wx:if="{{promotionV1 && promotionGoods.length > 0}}">
+        <view class="promotion-zone-head">
+            <view class="promotion-zone-title">活动专区</view>
+            <view class="promotion-zone-sub">秒杀 / 限时折扣 / 满减</view>
+        </view>
+        <scroll-view class="promotion-scroll" scroll-x="true" enable-flex="true">
+            <navigator
+                class="promotion-card"
+                wx:for="{{promotionGoods}}"
+                wx:key="id"
+                url="/pages/goods/goods?id={{item.id}}"
+                hover-class="none"
+            >
+                <view class="promotion-img-wrap">
+                    <image class="promotion-img" src="{{item.list_pic_url}}" mode="aspectFill"></image>
+                    <view class="promotion-tag">{{item.promo_tag || '活动价'}}</view>
+                </view>
+                <view class="promotion-name">{{item.name}}</view>
+                <view class="promotion-price-row">
+                    <text class="promotion-price">¥{{item.promo_price}}</text>
+                    <text class="promotion-origin">¥{{item.original_price}}</text>
+                </view>
+                <view class="promotion-countdown" wx:if="{{item.promo_countdown_seconds > 0}}">
+                    {{item.promo_countdown_text}}
+                </view>
+                <view class="promotion-progress" wx:if="{{item.promo_type === 'seckill'}}">
+                    <view class="promotion-progress-inner" style="width: {{item.promo_stock_percent}}%;"></view>
+                </view>
+            </navigator>
+        </scroll-view>
+    </view>
     <view class="coupon-zone" wx:if="{{couponLoading || couponSectionReady || couponNeedLogin}}">
         <view class="coupon-zone-head">
             <view class="coupon-zone-title">限时领券</view>
@@ -126,9 +157,9 @@
                             <view class="goods-title">{{iitem.name}}</view>
                             <view class='price-container'>
                                 <view class='l'>
-                                    <view class='h'>￥{{iitem.has_coupon_promo ? iitem.promo_price : iitem.min_retail_price}}</view>
-                                    <view class='promo-origin' wx:if="{{iitem.has_coupon_promo}}">￥{{iitem.original_price}}</view>
-                                    <view class='promo-tag' wx:if="{{iitem.has_coupon_promo && iitem.promo_tag}}">{{iitem.promo_tag}}</view>
+                                    <view class='h'>￥{{iitem.has_promo ? iitem.promo_price : iitem.min_retail_price}}</view>
+                                    <view class='promo-origin' wx:if="{{iitem.has_promo}}">￥{{iitem.original_price}}</view>
+                                    <view class='promo-tag' wx:if="{{iitem.has_promo && iitem.promo_tag}}">{{iitem.promo_tag}}</view>
                                 </view>
                             </view>
                         </view>

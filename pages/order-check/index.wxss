@@ -212,6 +212,22 @@ page {
     /* padding-right: 30rpx; */
 }
 
+.row-tip {
+    align-items: flex-start;
+    min-height: 90rpx;
+    height: auto;
+    padding-top: 18rpx;
+    padding-bottom: 18rpx;
+}
+
+.tip-text {
+    text-align: right;
+    color: #ff3456;
+    font-size: 24rpx;
+    line-height: 36rpx;
+    max-width: 450rpx;
+}
+
 .color-red {
     color: #b42519;
 }
