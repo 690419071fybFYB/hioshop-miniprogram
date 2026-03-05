@@ -133,16 +133,19 @@
                                 </view>
                             </block>
                         </view>
-                        <view class="goods-info {{iitem.goods_number <= 0?'fast-out-status':''}}">
-                            <view class="goods-title">{{iitem.name}}</view>
-                            <view class='price-container'>
-                                <view class='l'>
-                                    <view class='h'>￥{{iitem.has_coupon_promo ? iitem.promo_price : iitem.min_retail_price}}</view>
-                                    <view class='promo-origin' wx:if="{{iitem.has_coupon_promo}}">￥{{iitem.original_price}}</view>
-                                    <view class='promo-tag' wx:if="{{iitem.has_coupon_promo && iitem.promo_tag}}">{{iitem.promo_tag}}</view>
+                            <view class="goods-info {{iitem.goods_number <= 0?'fast-out-status':''}}">
+                                <view class="goods-title">{{iitem.name}}</view>
+                                <view class='price-container'>
+                                    <view class='l'>
+                                        <view class="promo-line">
+                                            <view class='h'>￥{{iitem.displayPrice || iitem.min_retail_price}}</view>
+                                            <view class='promo-origin' wx:if="{{iitem.hasPromotion}}">￥{{iitem.displayOriginalPrice}}</view>
+                                            <view class='promo-tag' wx:if="{{iitem.hasPromotion && iitem.displayPromotionTag}}">{{iitem.displayPromotionTag}}</view>
+                                        </view>
+                                        <view class='promo-countdown' wx:if="{{iitem.hasPromotion && iitem.promotionCountdownText}}">{{iitem.promotionCountdownText}}</view>
+                                    </view>
                                 </view>
                             </view>
-                        </view>
                     </navigator>
                 </view>
             </view>
