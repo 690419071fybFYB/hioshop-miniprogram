@@ -2,15 +2,18 @@
     <view class="popup-ad-mask" wx:if="{{showPopupAd}}" bindtap="closePopupAd"></view>
     <view class="popup-ad-wrap" wx:if="{{showPopupAd}}" bindtap="stopPopupTap">
         <view class="popup-ad-card">
-            <image class="popup-ad-image" src="{{popupAd.image_url}}" mode="widthFix" bindtap="handlePopupAdJump"></image>
-            <view class="popup-ad-title" wx:if="{{popupAd.title}}">{{popupAd.title}}</view>
-            <view class="popup-ad-actions">
-                <checkbox-group bindchange="onPopupDontShowChange">
+            <view class="popup-ad-media">
+                <image class="popup-ad-image" src="{{popupAd.image_url}}" mode="widthFix" bindtap="handlePopupAdJump"></image>
+                <view class="popup-title-badge" wx:if="{{popupAd.title}}">{{popupAd.title}}</view>
+                <view class="popup-close-fab" catchtap="closePopupAd">
+                    <text class="popup-close-icon">×</text>
+                </view>
+                <checkbox-group class="popup-dontshow-chip" bindchange="onPopupDontShowChange">
                     <label class="popup-checkbox-label">
-                        <checkbox value="1" checked="{{popupDontShowToday}}" color="#ff3456" />今日不再出现
+                        <checkbox class="popup-checkbox" value="1" checked="{{popupDontShowToday}}" color="#ff3456" />
+                        <text class="popup-checkbox-text">今日不再出现</text>
                     </label>
                 </checkbox-group>
-                <button class="popup-close-btn" size="mini" plain bindtap="closePopupAd">关闭</button>
             </view>
         </view>
     </view>

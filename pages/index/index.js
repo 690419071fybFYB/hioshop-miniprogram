@@ -2,6 +2,7 @@ const util = require('../../utils/util.js');
 const api = require('../../config/api.js');
 const user = require('../../services/user.js');
 const store = require('../../store/index.js');
+const DEFAULT_POPUP_AUTO_CLOSE_SECONDS = 5;
 
 //获取应用实例
 const app = getApp()
@@ -54,7 +55,35 @@ Page({
         const key = this.getPopupDismissKey(adId);
         wx.setStorageSync(key, '1');
     },
+    getPopupAutoCloseSeconds(ad) {
+        const rawSeconds = Number(ad && ad.auto_close_seconds || 0);
+        if (Number.isFinite(rawSeconds) && rawSeconds > 0) {
+            return Math.max(1, Math.floor(rawSeconds));
+        }
+        return DEFAULT_POPUP_AUTO_CLOSE_SECONDS;
+    },
+    clearPopupAutoCloseTimer() {
+        if (this.popupAutoCloseTimer) {
+            clearTimeout(this.popupAutoCloseTimer);
+            this.popupAutoCloseTimer = null;
+        }
+    },
+    startPopupAutoCloseTimer(seconds) {
+        const safeSeconds = Number(seconds || 0);
+        if (!Number.isFinite(safeSeconds) || safeSeconds <= 0) {
+            return;
+        }
+        this.clearPopupAutoCloseTimer();
+        this.popupAutoCloseTimer = setTimeout(() => {
+            this.popupAutoCloseTimer = null;
+            if (!this.data.showPopupAd) {
+                return;
+            }
+            this.closePopupAd();
+        }, safeSeconds * 1000);
+    },
     applyPopupAdVisibility(popupAd) {
+        this.clearPopupAutoCloseTimer();
         const ad = popupAd && Number(popupAd.id || 0) > 0 ? popupAd : null;
         if (!ad) {
             this.setData({
@@ -70,6 +99,9 @@ Page({
             showPopupAd: !dismissed,
             popupDontShowToday: false
         });
+        if (!dismissed) {
+            this.startPopupAutoCloseTimer(this.getPopupAutoCloseSeconds(ad));
+        }
     },
     onPopupDontShowChange(e) {
         const values = (e && e.detail && e.detail.value) || [];
@@ -84,6 +116,10 @@ Page({
         }
     },
     closePopupAd() {
+        this.clearPopupAutoCloseTimer();
+        if (!this.data.showPopupAd) {
+            return;
+        }
         this.savePopupDismissState();
         this.setData({
             showPopupAd: false
@@ -131,6 +167,7 @@ Page({
         if (!ad) {
             return;
         }
+        this.clearPopupAutoCloseTimer();
         this.savePopupDismissState();
         this.setData({
             showPopupAd: false
@@ -334,6 +371,7 @@ Page({
         this.setData({
             autoplay: false
         });
+        this.clearPopupAutoCloseTimer();
         this.stopPromotionTicker();
     },
     goSearch: function () {
@@ -408,6 +446,7 @@ Page({
             }
         }).catch(function () {
             // Avoid permanent loading spinner when request fails.
+            that.clearPopupAutoCloseTimer();
             that.setData({
                 loading: 1,
                 hasError: true,
@@ -443,6 +482,7 @@ Page({
         wx.removeStorageSync('categoryId');
     },
     onUnload: function () {
+        this.clearPopupAutoCloseTimer();
         this.stopPromotionTicker();
     },
     getChannelShowInfo: function (e) {
