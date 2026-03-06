@@ -187,7 +187,3 @@ App({
     token: '',
   }
 })
-    const inviteCode = extractInviteCode(launchOptions);
-    if (inviteCode) {
-      session.setPendingInviteCode(inviteCode);
-    }
