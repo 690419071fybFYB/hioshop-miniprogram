@@ -325,6 +325,23 @@ function loginNow() {
     return true;
 }
 
+function ensureLoginForCheckout(options = {}) {
+    const token = wx.getStorageSync('token') || '';
+    if (token) {
+        return true;
+    }
+    const redirect = options.redirect || '/pages/cart/cart';
+    const from = options.from || 'checkout';
+    wx.showToast({
+        title: '请先登录后结算',
+        icon: 'none'
+    });
+    wx.navigateTo({
+        url: `/pages/app-auth/index?redirect=${encodeURIComponent(redirect)}&from=${encodeURIComponent(from)}`
+    });
+    return false;
+}
+
 function getTextLength(str, full) {
     let len = 0;
     for (let i = 0; i < str.length; i++) {
@@ -592,6 +609,7 @@ module.exports = {
     testMobile,
     sentRes,
     loginNow,
+    ensureLoginForCheckout,
     getTextLength,
     transferBorder,
     transferColor,

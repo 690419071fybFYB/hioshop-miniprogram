@@ -3,7 +3,7 @@
         <view class='logo'>
             <image class='logo-img' src='https://fybshopbk-1369967353.cos.ap-shanghai.myqcloud.com/images/icon/loading.png'></image>
         </view>
-        <view class='logo-name'>海风小店</view>
+        <view class='logo-name'>美妆小店</view>
         <view class='intro'>美妆好物 · 甄选优品</view>
     </view>
 

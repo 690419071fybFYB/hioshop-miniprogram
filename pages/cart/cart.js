@@ -351,7 +351,13 @@ Page({
     },
     checkoutOrder: function() {
         // 去结算：需要至少选择一件商品
-        util.loginNow();
+        const canCheckout = util.ensureLoginForCheckout({
+            redirect: '/pages/cart/cart',
+            from: 'checkout'
+        });
+        if (!canCheckout) {
+            return false;
+        }
         let that = this;
         var checkedGoods = this.data.cartGoods.filter(function(element, index, array) {
             if (element.checked == true) {

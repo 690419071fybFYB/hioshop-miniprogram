@@ -139,25 +139,23 @@ Page({
         app.globalData.userInfo = userInfo;
         app.globalData.token = res.data.token;
         if (typeof done === 'function') done(true);
-      } else if (typeof done === 'function') {
-        done(false);
+      } else {
+        util.showErrorToast(res.errmsg || '登录失败，请稍后重试');
+        if (typeof done === 'function') done(false);
       }
     }).catch(function () {
+      util.showErrorToast('登录失败，请稍后重试');
       if (typeof done === 'function') done(false);
     });
   },
   ensureLoginAndLoadProfile() {
     const token = wx.getStorageSync('token') || '';
     if (!token) {
-      this.goAuth((ok) => {
-        if (ok) {
-          this.getSettingsDetail();
-        } else {
-          this.setData({
-            hasUserInfo: false,
-            showLoginProfileSheet: false
-          });
-        }
+      this.setData({
+        hasUserInfo: false,
+        showLoginProfileSheet: false,
+        userInfo: {},
+        avatarDisplayUrl: '/images/icon/default_avatar_big.png'
       });
       return;
     }

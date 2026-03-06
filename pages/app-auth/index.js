@@ -7,16 +7,38 @@ const app = getApp()
 
 Page({
   data: {
-
+    redirect: '',
+    from: '',
+    loginLoading: false
   },
   onLoad: function (options) {
-
+    this.setData({
+      redirect: options.redirect ? decodeURIComponent(options.redirect) : '',
+      from: options.from || ''
+    });
   },
   onShow: function () {
     let userInfo = wx.getStorageSync('userInfo');
     if (userInfo != '') {
-      wx.navigateBack();
+      this.redirectAfterLogin();
     };
+  },
+  redirectAfterLogin() {
+    const redirect = this.data.redirect || '';
+    if (redirect) {
+      wx.redirectTo({
+        url: redirect,
+        fail: () => {
+          wx.navigateBack({
+            delta: 1
+          });
+        }
+      });
+      return;
+    }
+    wx.navigateBack({
+      delta: 1
+    });
   },
   // getUserInfo: function (e) {
   //     app.globalData.userInfo = e.detail.userInfo
@@ -36,41 +58,33 @@ Page({
   // },
 
   getUserProfile: function () {
-    // wx.navigateTo({
-    //     url: '/pages/app-auth/index',
-    // });
-    let that = this;
-    let code = '';
+    if (this.data.loginLoading) {
+      return;
+    }
+    this.setData({ loginLoading: true });
+    this.loginWithCode();
+  },
+  loginWithCode() {
     wx.login({
       success: (res) => {
-        code = res.code;
+        const code = (res && res.code) || '';
+        if (!code) {
+          this.setData({ loginLoading: false });
+          util.showErrorToast('登录失败，请稍后重试');
+          return;
+        }
+        this.postLogin(code);
       },
-    });
-    // 获取用户信息
-    wx.getUserProfile({
-      lang: 'zh_CN',
-      desc: '用户登录',
-      success: (res) => {
-        let loginParams = {
-          code: code,
-          app: 3,
-          encryptedData: res.encryptedData,
-          iv: res.iv,
-          rawData: res.rawData,
-          signature: res.signature
-        };
-        that.postLogin(loginParams);
-      },
-      // 失败回调
       fail: () => {
-        // 弹出错误
-        App.showError('已拒绝小程序获取信息');
+        this.setData({ loginLoading: false });
+        util.showErrorToast('登录失败，请稍后重试');
       }
     });
   },
-  postLogin(info) {
+  postLogin(code) {
+    let that = this;
     util.request(api.AuthLoginByWeixin, {
-      info: info
+      code: code
     }, 'POST', { skipAuthRefresh: true }).then(function (res) {
       if (res.errno === 0) {
         session.saveSession({
@@ -81,12 +95,19 @@ Page({
         app.globalData.token = res.data.token;
         let is_new = res.data.is_new; //服务器返回的数据；
         if (is_new == 0) {
-          util.showErrorToast('您已经是老用户啦！');
-          wx.navigateBack();
+          util.showSuccessToast('登录成功');
+          that.redirectAfterLogin();
         } else if (is_new == 1) {
-          wx.navigateBack();
+          util.showSuccessToast('登录成功');
+          that.redirectAfterLogin();
         }
+      } else {
+        util.showErrorToast(res.errmsg || '登录失败');
       }
+      that.setData({ loginLoading: false });
+    }).catch(function () {
+      that.setData({ loginLoading: false });
+      util.showErrorToast('登录失败，请稍后重试');
     });
   },
   goBack: function () {
