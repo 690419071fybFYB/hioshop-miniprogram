@@ -45,7 +45,7 @@ Page({
     },
     mapGoodsPromotionDisplay(goods) {
         const item = Object.assign({}, goods || {});
-        const hasPromotion = Number(item.has_promotion || item.has_coupon_promo || 0) === 1;
+        const hasPromotion = Number(item.has_promotion || 0) === 1;
         const basePrice = item.min_retail_price || item.retail_price || '0.00';
         const displayPrice = hasPromotion ? (item.promotion_price || item.promo_price || basePrice) : basePrice;
         const displayOriginalPrice = hasPromotion ? (item.promotion_original_price || item.original_price || basePrice) : basePrice;

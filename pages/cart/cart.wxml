@@ -24,7 +24,12 @@
 							<view class="{{item.number >0 && item.is_on_sale == 1?'goods-title':'out-stock-title'}}">{{item.goods_name}}</view>
 							<view class="goods-label">{{item.goods_specifition_name_value}}</view>
 							<view class="goods-price">
-								<view class='price-now'>￥{{item.retail_price}}</view>
+								<view class='price-row'>
+									<view class='price-now'>￥{{item.displayPrice}}</view>
+									<view class='price-original' wx:if="{{item.hasPromotion}}">￥{{item.displayOriginalPrice}}</view>
+									<view class='promo-tag' wx:if="{{item.hasPromotion && item.displayPromotionTag}}">{{item.displayPromotionTag}}</view>
+								</view>
+								<view class='promo-countdown' wx:if="{{item.hasPromotion && item.promotionCountdownText}}">{{item.promotionCountdownText}}</view>
 							</view>
 							<view class="selnum" catchtap="nothing" wx:if="{{item.number > 0 && item.is_on_sale == 1}}">
 								<view data-item-index="{{index}}" class="cut" catchtap="cutNumber">-</view>

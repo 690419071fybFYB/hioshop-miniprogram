@@ -155,6 +155,12 @@ page {
     margin-right: 10rpx;
 }
 
+.goods-price .price-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 .price-original {
     display: inline-block;
     color: #999;
@@ -162,6 +168,25 @@ page {
     font-size: 26rpx;
     /* float: left; *//* line-height: 44rpx; */
     text-decoration: line-through;
+    margin-right: 10rpx;
+}
+
+.goods-price .promo-tag {
+    display: inline-flex;
+    align-items: center;
+    height: 30rpx;
+    line-height: 30rpx;
+    border-radius: 16rpx;
+    padding: 0 12rpx;
+    background: rgba(255, 52, 86, 0.12);
+    color: #ff3456;
+    font-size: 20rpx;
+}
+
+.goods-price .promo-countdown {
+    margin-top: 8rpx;
+    color: #ff3456;
+    font-size: 22rpx;
 }
 
 .goods-info .text-box .buy-num {

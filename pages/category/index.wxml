@@ -48,8 +48,8 @@
                                         <view class='promo-line'>
                                             <view class='h'>￥{{item.displayPrice || item.min_retail_price}}</view>
                                             <view class='promo-origin' wx:if="{{item.hasPromotion}}">￥{{item.displayOriginalPrice}}</view>
-                                            <view class='promo-tag' wx:if="{{item.hasPromotion && item.displayPromotionTag}}">{{item.displayPromotionTag}}</view>
                                         </view>
+                                        <view class='promo-tag' wx:if="{{item.hasPromotion && item.displayPromotionTag}}">{{item.displayPromotionTag}}</view>
                                         <view class='promo-countdown' wx:if="{{item.hasPromotion && item.promotionCountdownText}}">{{item.promotionCountdownText}}</view>
                                     </view>
                                 </view>

@@ -183,6 +183,12 @@ page {
     transform: rotate(45deg);
 }
 
+.goods-list .promotion-tip {
+    padding: 0 24rpx 20rpx;
+    font-size: 24rpx;
+    color: #ff3456;
+}
+
 .price-check-wrap {
     background-color: #fff;
     padding: 0 0 0 24rpx;
@@ -201,7 +207,7 @@ page {
 }
 
 .row-label {
-    width: 140rpx;
+    width: 180rpx;
     font-size: 28rpx;
     color: #000;
 }

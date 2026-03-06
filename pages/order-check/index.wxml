@@ -40,10 +40,19 @@
                     <view class="arrow"></view>
                 </view>
 			</view>
+			<view class="promotion-tip" wx:if="{{promotionCountdownTip}}">{{promotionCountdownTip}}</view>
 		</view>
 		<view class="price-check-wrap">
 			<view class="row-box">
-				<view class="row-label">商品总价</view>
+				<view class="row-label">商品原价</view>
+				<view class="right-text">￥{{goodsOriginalPrice}}</view>
+			</view>
+			<view class="row-box">
+				<view class="row-label">促销优惠</view>
+				<view class="right-text color-red">-¥{{promotionPrice}}</view>
+			</view>
+			<view class="row-box">
+				<view class="row-label">促销后商品</view>
 				<view class="right-text">￥{{goodsTotalPrice}}</view>
 			</view>
 			<view class="row-box">

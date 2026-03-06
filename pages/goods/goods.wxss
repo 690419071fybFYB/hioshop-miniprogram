@@ -260,6 +260,12 @@
     flex-direction: column;
 }
 
+.price-info .l .price-line {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
 .price-info .l .now-price {
     display: flex;
     justify-content: flex-start;
@@ -274,8 +280,44 @@
 }
 
 .price-info .l .now-price .num {
-    font-size: 28rpx;
-    font-weight: 500;
+    font-size: 34rpx;
+    font-weight: 600;
+}
+
+.price-info .l .old-price-inline {
+    display: flex;
+    justify-content: flex-start;
+    align-items: baseline;
+    color: #999;
+    margin-right: 12rpx;
+    text-decoration: line-through;
+}
+
+.price-info .l .old-price-inline .sym {
+    font-size: 20rpx;
+}
+
+.price-info .l .old-price-inline .num {
+    font-size: 24rpx;
+}
+
+.price-info .l .promo-tag {
+    display: inline-flex;
+    align-items: center;
+    height: 32rpx;
+    line-height: 32rpx;
+    border-radius: 16rpx;
+    padding: 0 12rpx;
+    background: rgba(255, 52, 86, 0.12);
+    color: #ff3456;
+    font-size: 20rpx;
+    margin-left: 10rpx;
+}
+
+.price-info .l .promo-countdown {
+    margin-top: 8rpx;
+    color: #ff3456;
+    font-size: 24rpx;
 }
 
 .price-info .l .other-price {

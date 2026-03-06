@@ -39,6 +39,95 @@ Page({
         uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
         vantEnabled: !!api.features.vantEnabled
     },
+    formatPromotionCountdown(endAt) {
+        const endTs = Number(endAt || 0);
+        if (!endTs) {
+            return '';
+        }
+        const remain = endTs - Math.floor(Date.now() / 1000);
+        if (remain <= 0) {
+            return '活动已结束';
+        }
+        const day = Math.floor(remain / 86400);
+        const hour = Math.floor((remain % 86400) / 3600);
+        const minute = Math.floor((remain % 3600) / 60);
+        const second = Math.floor(remain % 60);
+        if (day > 0) {
+            return `剩余${day}天${hour}时`;
+        }
+        const pad = (n) => String(n).padStart(2, '0');
+        return `剩余${pad(hour)}:${pad(minute)}:${pad(second)}`;
+    },
+    mapCartPromotionDisplay(cartList) {
+        return (cartList || []).map((item) => {
+            const hasPromotion = Number(item.has_promotion || 0) === 1;
+            const displayPrice = hasPromotion
+                ? (item.display_price || item.promotion_price || item.promo_price || item.retail_price)
+                : item.retail_price;
+            const displayOriginalPrice = hasPromotion
+                ? (item.promotion_original_price || item.original_price || item.retail_price)
+                : item.retail_price;
+            const displayPromotionTag = hasPromotion ? (item.promotion_tag || item.promo_tag || '') : '';
+            const promotionEndAt = Number(item.promotion_end_at || 0);
+            return Object.assign({}, item, {
+                hasPromotion,
+                displayPrice,
+                displayOriginalPrice,
+                displayPromotionTag,
+                promotionEndAt,
+                promotionCountdownText: hasPromotion ? this.formatPromotionCountdown(promotionEndAt) : ''
+            });
+        });
+    },
+    hasPromotionGoods(cartList) {
+        return (cartList || []).some((item) => !!item.hasPromotion);
+    },
+    refreshPromotionCountdown() {
+        const cartGoods = this.data.cartGoods || [];
+        let changed = false;
+        const nextCartGoods = cartGoods.map((item) => {
+            if (!item.hasPromotion) {
+                return item;
+            }
+            const nextCountdown = this.formatPromotionCountdown(item.promotionEndAt);
+            if (nextCountdown === item.promotionCountdownText) {
+                return item;
+            }
+            changed = true;
+            return Object.assign({}, item, {
+                promotionCountdownText: nextCountdown
+            });
+        });
+        if (changed) {
+            this.setData({
+                cartGoods: nextCartGoods
+            });
+        }
+    },
+    stopPromotionTicker() {
+        if (this.promotionTicker) {
+            clearInterval(this.promotionTicker);
+            this.promotionTicker = null;
+        }
+    },
+    startPromotionTicker() {
+        this.stopPromotionTicker();
+        this.promotionTicker = setInterval(() => {
+            this.refreshPromotionCountdown();
+        }, 1000);
+    },
+    applyCartResponse(cartList, cartTotal) {
+        const mappedList = this.mapCartPromotionDisplay(cartList || []);
+        this.setData({
+            cartGoods: mappedList,
+            cartTotal: cartTotal || this.data.cartTotal
+        });
+        if (this.hasPromotionGoods(mappedList)) {
+            this.startPromotionTicker();
+        } else {
+            this.stopPromotionTicker();
+        }
+    },
     onLoad: function() {
     },
     onReady: function() {
@@ -71,9 +160,11 @@ Page({
     },
     onHide: function() {
         // 页面隐藏
+        this.stopPromotionTicker();
     },
     onUnload: function() {
         // 页面关闭
+        this.stopPromotionTicker();
     },
     toIndexPage: function() {
         // 去首页（tab 页切换）
@@ -92,9 +183,8 @@ Page({
                 } else {
                     hasCartGoods = 0;
                 }
+                that.applyCartResponse(res.data.cartList, res.data.cartTotal);
                 that.setData({
-                    cartGoods: res.data.cartList,
-                    cartTotal: res.data.cartTotal,
                     hasCartGoods: hasCartGoods,
                     hasError: false,
                     errorMessage: ''
@@ -113,6 +203,7 @@ Page({
                 hasError: true,
                 errorMessage: '购物车加载失败'
             });
+            that.stopPromotionTicker();
             util.showErrorToast('购物车加载失败');
         });
     },
@@ -134,12 +225,12 @@ Page({
         this.data.cartGoods.forEach(function(v) {
             if (v.checked == true) {
                 checkedGoodsCount += v.number;
-                checkedGoodsAmount += v.number * v.retail_price
+                checkedGoodsAmount += v.number * Number(v.displayPrice || v.display_price || v.promotion_price || v.retail_price || 0)
             }
         });
         this.setData({
             'cartTotal.checkedGoodsCount': checkedGoodsCount,
-            'cartTotal.checkedGoodsAmount': checkedGoodsAmount,
+            'cartTotal.checkedGoodsAmount': checkedGoodsAmount.toFixed(2),
         });
     },
     checkedAll: function() {
@@ -155,10 +246,7 @@ Page({
                 isChecked: that.isCheckedAll() ? 0 : 1
             }, 'POST', { page: that }).then(function(res) {
                 if (res.errno === 0) {
-                    that.setData({
-                        cartGoods: res.data.cartList,
-                        cartTotal: res.data.cartTotal
-                    });
+                    that.applyCartResponse(res.data.cartList, res.data.cartTotal);
                 }
 
                 that.setData({
@@ -174,7 +262,7 @@ Page({
             });
             // 注意：这里按原逻辑应调用 this.getCheckedGoodsCount()
             // 当前代码写成 getCheckedGoodsCount() 可能导致未定义错误（若编辑态分支被触发）
-            getCheckedGoodsCount();
+            this.getCheckedGoodsCount();
             that.setData({
                 cartGoods: tmpCartData,
                 checkedAllStatus: that.isCheckedAll(),
@@ -196,10 +284,7 @@ Page({
         }, 'POST', { page: that }).then(function(res) {
             if (res.errno === 0) {
                 // 后端返回新的购物车列表与汇总
-                that.setData({
-                    cartGoods: res.data.cartList,
-                    cartTotal: res.data.cartTotal
-                });
+                that.applyCartResponse(res.data.cartList, res.data.cartTotal);
                 let cartItem = that.data.cartGoods[itemIndex];
                 cartItem.number = number;
                 // 同步 tabBar 角标数量
@@ -305,10 +390,7 @@ Page({
                 isChecked: that.data.cartGoods[itemIndex].checked ? 0 : 1
             }, 'POST', { page: that }).then(function(res) {
                 if (res.errno === 0) {
-                    that.setData({
-                        cartGoods: res.data.cartList,
-                        cartTotal: res.data.cartTotal
-                    });
+                    that.applyCartResponse(res.data.cartList, res.data.cartTotal);
                 }
 
                 that.setData({

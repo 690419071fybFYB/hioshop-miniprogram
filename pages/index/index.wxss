@@ -534,7 +534,11 @@
 }
 
 .new-box .navi-url .goods-info .price-container .l .promo-tag {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    max-width: 100%;
+    margin-top: 4rpx;
     padding: 0 8rpx;
     line-height: 28rpx;
     font-size: 18rpx;
@@ -542,6 +546,9 @@
     background: #fff1f1;
     border: 1rpx solid #ffd4d4;
     border-radius: 6rpx;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .new-box .navi-url .goods-info .price-container .l .promo-countdown {
