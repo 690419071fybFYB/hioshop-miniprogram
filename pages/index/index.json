@@ -2,7 +2,6 @@
   "navigationBarTitleText": "美妆小店",
   "usingComponents": {
     "van-button": "@vant/weapp/button/index",
-    "van-empty": "@vant/weapp/empty/index",
     "van-loading": "@vant/weapp/loading/index",
     "van-tag": "@vant/weapp/tag/index"
   }

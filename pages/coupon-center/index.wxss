@@ -1,5 +1,8 @@
 .container {
+  min-height: 100%;
   padding: 24rpx;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #fff8fa 0%, #ffffff 34%);
 }
 
 .top-bar {
@@ -19,6 +22,15 @@
   font-size: 26rpx;
 }
 
+.login-tip {
+  margin-bottom: 18rpx;
+  padding: 14rpx 18rpx;
+  border-radius: 12rpx;
+  background: #fff4f6;
+  color: #9f5566;
+  font-size: 22rpx;
+}
+
 .loading, .empty {
   text-align: center;
   padding: 48rpx 0;
@@ -28,10 +40,12 @@
 .coupon-card {
   display: flex;
   justify-content: space-between;
-  padding: 20rpx;
-  border-radius: 16rpx;
+  padding: 22rpx;
+  border-radius: 18rpx;
   background: #fff;
   margin-bottom: 16rpx;
+  box-shadow: 0 8rpx 20rpx rgba(236, 83, 121, 0.08);
+  border: 1rpx solid #ffe4ea;
 }
 
 .left {

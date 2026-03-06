@@ -24,15 +24,77 @@ Page({
         uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
         vantEnabled: !!api.features.vantEnabled
     },
-    normalizeGoodsPromo(item) {
-        const goods = Object.assign({}, item || {});
-        const minRetail = Number(goods.min_retail_price || goods.retail_price || 0);
-        const hasPromo = Number(goods.has_promo || 0) === 1 || Number(goods.has_coupon_promo || 0) === 1;
-        goods.has_promo = hasPromo ? 1 : 0;
-        goods.promo_price = hasPromo ? (goods.promo_price || minRetail) : minRetail;
-        goods.original_price = hasPromo ? (goods.original_price || minRetail) : minRetail;
-        goods.promo_tag = goods.promo_tag || '';
-        return goods;
+    formatPromotionCountdown(endAt) {
+        const endTs = Number(endAt || 0);
+        if (!endTs) {
+            return '';
+        }
+        const remain = endTs - Math.floor(Date.now() / 1000);
+        if (remain <= 0) {
+            return '活动已结束';
+        }
+        const day = Math.floor(remain / 86400);
+        const hour = Math.floor((remain % 86400) / 3600);
+        const minute = Math.floor((remain % 3600) / 60);
+        const second = Math.floor(remain % 60);
+        if (day > 0) {
+            return `剩余${day}天${hour}时`;
+        }
+        const pad = (n) => String(n).padStart(2, '0');
+        return `剩余${pad(hour)}:${pad(minute)}:${pad(second)}`;
+    },
+    mapGoodsPromotionDisplay(goods) {
+        const item = Object.assign({}, goods || {});
+        const hasPromotion = Number(item.has_promotion || 0) === 1;
+        const basePrice = item.min_retail_price || item.retail_price || '0.00';
+        const displayPrice = hasPromotion ? (item.promotion_price || item.promo_price || basePrice) : basePrice;
+        const displayOriginalPrice = hasPromotion ? (item.promotion_original_price || item.original_price || basePrice) : basePrice;
+        const displayPromotionTag = hasPromotion ? (item.promotion_tag || item.promo_tag || '') : '';
+        const promotionEndAt = Number(item.promotion_end_at || 0);
+        item.hasPromotion = hasPromotion;
+        item.displayPrice = displayPrice;
+        item.displayOriginalPrice = displayOriginalPrice;
+        item.displayPromotionTag = displayPromotionTag;
+        item.promotionEndAt = promotionEndAt;
+        item.promotionCountdownText = hasPromotion ? this.formatPromotionCountdown(promotionEndAt) : '';
+        return item;
+    },
+    hasPromotionGoods(list) {
+        return (list || []).some((item) => !!item.hasPromotion);
+    },
+    refreshPromotionCountdown() {
+        const list = this.data.list || [];
+        let changed = false;
+        const nextList = list.map((item) => {
+            if (!item.hasPromotion) {
+                return item;
+            }
+            const nextCountdown = this.formatPromotionCountdown(item.promotionEndAt);
+            if (nextCountdown === item.promotionCountdownText) {
+                return item;
+            }
+            changed = true;
+            return Object.assign({}, item, {
+                promotionCountdownText: nextCountdown
+            });
+        });
+        if (changed) {
+            this.setData({
+                list: nextList
+            });
+        }
+    },
+    stopPromotionTicker() {
+        if (this.promotionTicker) {
+            clearInterval(this.promotionTicker);
+            this.promotionTicker = null;
+        }
+    },
+    startPromotionTicker() {
+        this.stopPromotionTicker();
+        this.promotionTicker = setInterval(() => {
+            this.refreshPromotionCountdown();
+        }, 1000);
     },
     onLoad: function(options) {
     },
@@ -124,7 +186,11 @@ Page({
             id: id
         }, 'POST', { page: that }).then(function(res) {
             if (res.errno === 0) {
-                const incoming = (Array.isArray(res.data.data) ? res.data.data : []).map((item) => that.normalizeGoodsPromo(item));
+                const incoming = Array.isArray(res.data.data) ? res.data.data.map((item) => {
+                    const next = Object.assign({}, item);
+                    next.list_pic_url = util.optimizeProductListImage(item && item.list_pic_url);
+                    return that.mapGoodsPromotionDisplay(next);
+                }) : [];
                 const mergedList = that.data.list.concat(incoming);
                 const count = Number(res.data.count || 0);
                 const currentPage = Number(res.data.currentPage || targetPage || 1);
@@ -139,6 +205,11 @@ Page({
                     hasError: false,
                     errorMessage: ''
                 });
+                if (that.hasPromotionGoods(mergedList)) {
+                    that.startPromotionTicker();
+                } else {
+                    that.stopPromotionTicker();
+                }
                 if (count == 0) {
                     that.setData({
                         hasInfo: 0,
@@ -156,6 +227,7 @@ Page({
                 hasError: true,
                 errorMessage: '分类商品加载失败'
             });
+            that.stopPromotionTicker();
             util.showErrorToast('分类商品加载失败');
         });
     },
@@ -168,6 +240,9 @@ Page({
         const targetId = hasStoredId ? parsedStoredId : (Number(this.data.nowId) || 0);
         const currentId = Number(this.data.nowId) || 0;
         if (this.data.list.length > 0 && currentId === targetId) {
+            if (this.hasPromotionGoods(this.data.list)) {
+                this.startPromotionTicker();
+            }
             return;
         }
         this.setData({
@@ -204,22 +279,29 @@ Page({
                 size: 8,
                 loading: 1,
                 isLoadingMore: false
-            })
+            });
+            this.stopPromotionTicker();
             if (id == 0) {
                 this.getCurrentList(0);
                 this.setData({
                     currentCategory: {}
-                })
+                });
             } else {
-                wx.setStorageSync('categoryId', id)
+                wx.setStorageSync('categoryId', id);
                 this.getCurrentList(id);
                 this.getCurrentCategory(id);
             }
-            wx.setStorageSync('categoryId', id)
+            wx.setStorageSync('categoryId', id);
             this.setData({
                 nowId: id
-            })
+            });
         }
+    },
+    onHide: function() {
+        this.stopPromotionTicker();
+    },
+    onUnload: function() {
+        this.stopPromotionTicker();
     },
     onBottom: function() {
         let that = this;

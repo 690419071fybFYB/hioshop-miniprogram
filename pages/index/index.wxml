@@ -9,22 +9,54 @@
     </view>
     <view class='contact-wrap' wx:if="{{showContact == 1}}">
         <button class="contact-btn" session-from='{"nickName":"{{userInfo.nickname}}","avatarUrl":"{{userInfo.avatar}}"}' open-type="contact">
-            <image class='icon' src='/images/icon/contact.png'></image>
+            <image lazy-load="true" class='icon' src='/images/icon/contact.png'></image>
             <view class='text'>客服</view>
         </button>
     </view>
     <view class="search" bindtap="goSearch">
-        <image class="icon" src="/images/icon/search.png"></image>
+        <image lazy-load="true" class="icon" src="/images/icon/search.png"></image>
         <text class="txt">搜索,发现更多好物</text>
+    </view>
+    <swiper
+      class="catalog-wrap"
+      indicator-dots="{{false}}"
+      indicator-color="#dedede"
+      indicator-active-color="#e00000"
+      wx:if="{{show_channel}}"
+      bindchange="onCatalogSwiperChange"
+    >
+        <swiper-item class="first">
+            <view wx:for="{{channel}}" wx:if="{{item.sort_order < 7}}" wx:key="id" class='icon-navi' data-cateid="{{item.id}}" bindtap="goCategory">
+                <image lazy-load="true" class='icon-img' src="{{item.icon_url}}"></image>
+                <view class='icon-text'>{{item.name}}</view>
+            </view>
+        </swiper-item>
+        <swiper-item class="first" wx:if="{{channel.length > 6}}">
+            <navigator wx:for="{{channel}}" wx:key="id" hover-class="none" class='icon-navi' url="/pages/category/index?id={{item.id}}" wx:if="{{item.sort_order > 6 && item.sort_order < 12}}">
+                <image lazy-load="true" class='icon-img' src="{{item.icon_url}}"></image>
+                <view class='icon-text'>{{item.name}}</view>
+            </navigator>
+        </swiper-item>
+        <swiper-item class="first" wx:if="{{channel.length > 11}}">
+            <navigator wx:for="{{channel}}" hover-class="none" class='icon-navi' url="/pages/category/index?id={{item.id}}" wx:if="{{item.sort_order > 10}}">
+                <image lazy-load="true" class='icon-img' src="{{item.icon_url}}"></image>
+                <view class='icon-text'>{{item.name}}</view>
+            </navigator>
+        </swiper-item>
+    </swiper>
+    <view class="catalog-page-hint" wx:if="{{show_channel && catalogPageCount > 1}}">
+      <view class="catalog-dots">
+        <view wx:for="{{catalogPages}}" wx:key="*this" class="catalog-dot {{item === currentCatalogPage ? 'active' : ''}}"></view>
+      </view>
     </view>
     <view class='banner-wrap' wx:if="{{show_banner && banner.length > 0}}">
         <swiper class="banner" indicator-dots="true" autoplay="{{autoplay}}" interval="3000" duration="1000"   >
             <swiper-item wx:for="{{banner}}" wx:key="id">
                 <navigator wx:if="{{item.link_type == 0}}" url="/pages/goods/goods?id={{item.goods_id}}">
-                    <image src="{{item.image_url}}" background-size="cover"></image>
+                    <image lazy-load="true" src="{{item.image_url}}" background-size="cover"></image>
                 </navigator>
                 <navigator wx:elif="{{item.link_type == 1}}" url="{{item.link}}">
-                    <image src="{{item.image_url}}" background-size="cover"></image>
+                    <image lazy-load="true" src="{{item.image_url}}" background-size="cover"></image>
                 </navigator>
             </swiper-item>
         </swiper>
@@ -34,7 +66,7 @@
             <swiper-item wx:for="{{notice}}" wx:key="id" class='notice-wrap'>
 
                     <view class="icon">
-                        <image src="/images/icon/notice-icon.png" class='img'>
+                        <image lazy-load="true" src="/images/icon/notice-icon.png" class='img'>
                         </image>
                     </view>
                     <view class='notice-text'>{{item.content}}</view>
@@ -42,47 +74,12 @@
             </swiper-item>
         </swiper>
     </view>
-    <view class="promotion-zone" wx:if="{{promotionV1 && promotionGoods.length > 0}}">
-        <view class="promotion-zone-head">
-            <view class="promotion-zone-title">活动专区</view>
-            <view class="promotion-zone-sub">秒杀 / 限时折扣 / 满减</view>
-        </view>
-        <scroll-view class="promotion-scroll" scroll-x="true" enable-flex="true">
-            <navigator
-                class="promotion-card"
-                wx:for="{{promotionGoods}}"
-                wx:key="id"
-                url="/pages/goods/goods?id={{item.id}}"
-                hover-class="none"
-            >
-                <view class="promotion-img-wrap">
-                    <image class="promotion-img" src="{{item.list_pic_url}}" mode="aspectFill"></image>
-                    <view class="promotion-tag">{{item.promo_tag || '活动价'}}</view>
-                </view>
-                <view class="promotion-name">{{item.name}}</view>
-                <view class="promotion-price-row">
-                    <text class="promotion-price">¥{{item.promo_price}}</text>
-                    <text class="promotion-origin">¥{{item.original_price}}</text>
-                </view>
-                <view class="promotion-countdown" wx:if="{{item.promo_countdown_seconds > 0}}">
-                    {{item.promo_countdown_text}}
-                </view>
-                <view class="promotion-progress" wx:if="{{item.promo_type === 'seckill'}}">
-                    <view class="promotion-progress-inner" style="width: {{item.promo_stock_percent}}%;"></view>
-                </view>
-            </navigator>
-        </scroll-view>
-    </view>
     <view class="coupon-zone" wx:if="{{couponLoading || couponSectionReady || couponNeedLogin}}">
         <view class="coupon-zone-head">
             <view class="coupon-zone-title">限时领券</view>
             <view class="coupon-zone-more" bindtap="toCouponCenter">查看更多</view>
         </view>
         <view class="coupon-loading" wx:if="{{couponLoading}}">优惠券加载中...</view>
-        <view class="coupon-empty" wx:elif="{{couponList.length === 0 && couponNeedLogin}}">
-            <view class="coupon-empty-text">登录后可领取专属优惠券</view>
-            <button class="coupon-empty-btn" size="mini" type="warn" bindtap="goLoginForCoupon">去登录</button>
-        </view>
         <view class="coupon-empty" wx:elif="{{couponList.length === 0}}">
             <view class="coupon-empty-text">当前暂无可领取优惠券</view>
         </view>
@@ -94,42 +91,25 @@
                 <button
                     class="coupon-btn"
                     size="mini"
-                    type="{{item.has_received ? 'default' : 'warn'}}"
+                    type="{{item.actionDisabled ? 'default' : 'warn'}}"
                     plain="{{item.has_received}}"
-                    disabled="{{item.has_received}}"
+                    disabled="{{item.actionDisabled}}"
                     data-id="{{item.id}}"
                     bindtap="receiveCouponFromHome"
                 >
-                    {{item.has_received ? '已领取' : '立即领取'}}
+                    {{item.actionText}}
                 </button>
+                <view class="coupon-login-tip" wx:if="{{item.needLoginToReceive && !item.actionDisabled}}">
+                    登录后可领取
+                </view>
             </view>
         </scroll-view>
     </view>
     <!-- <ad unit-id="adunit-c755904541658aa1" ad-type="grid" grid-opacity="0.8" grid-count="5" ad-theme="white"></ad> -->
-    <swiper class="catalog-wrap" indicator-dots="{{false}}" indicator-color="#dedede" indicator-active-color="#e00000" wx:if="{{show_channel}}">
-        <swiper-item class="first">
-            <view wx:for="{{channel}}" wx:if="{{item.sort_order < 7}}" wx:key="id" class='icon-navi' data-cateid="{{item.id}}" bindtap="goCategory">
-                <image class='icon-img' src="{{item.icon_url}}"></image>
-                <view class='icon-text'>{{item.name}}</view>
-            </view>
-        </swiper-item>
-        <swiper-item class="first" wx:if="{{channel.length > 6}}">
-            <navigator wx:for="{{channel}}" wx:key="id" hover-class="none" class='icon-navi' url="/pages/category/index?id={{item.id}}" wx:if="{{item.sort_order > 6 && item.sort_order < 12}}">
-                <image class='icon-img' src="{{item.icon_url}}"></image>
-                <view class='icon-text'>{{item.name}}</view>
-            </navigator>
-        </swiper-item>
-        <swiper-item class="first" wx:if="{{channel.length > 11}}">
-            <navigator wx:for="{{channel}}" hover-class="none" class='icon-navi' url="/pages/category/index?id={{item.id}}" wx:if="{{item.sort_order > 10}}">
-                <image class='icon-img' src="{{item.icon_url}}"></image>
-                <view class='icon-text'>{{item.name}}</view>
-            </navigator>
-        </swiper-item>
-    </swiper>
     <view class="goods-container">
         <view class='topic-container' wx:for="{{floorGoods}}" wx:key="id">
             <view class='banner-container' bindtap="goCategory" data-cateid="{{item.id}}" wx:if="{{index_banner_img == 1}}">
-                <image mode='aspectFill' style="width:100%;height:{{item.height}}rpx" src='{{item.banner}}'>
+                <image lazy-load="true" mode='aspectFill' style="width:100%;height:{{item.height}}rpx" src='{{item.banner}}'>
                 </image>
                 <view class="bg" style="height:{{item.height}}rpx;line-height:{{item.height}}rpx;"></view>
                 <view class="text" style="height:{{item.height}}rpx;line-height:{{item.height}}rpx;">{{item.name}}</view>
@@ -144,25 +124,28 @@
                 <view class="new-box {{(iindex+1)%3 == 0?'no-margin':''}}" wx:for="{{item.goodsList}}" wx:for-index="iindex" wx:for-item="iitem" wx:key="id">
                     <navigator hover-class='none' class='navi-url' url="/pages/goods/goods?id={{iitem.id}}">
                         <view class="box">
-                            <image src="{{iitem.list_pic_url}}" class="image"></image>
+                            <image lazy-load="true" src="{{iitem.list_pic_url}}" class="image"></image>
                             <van-tag wx:if="{{uiV2 && iitem.is_new == 1}}" class='new-tag' type="danger" plain>新品</van-tag>
                             <view wx:if="{{!uiV2 && iitem.is_new == 1}}" class='new-tag'>新品</view>
                             <block wx:if="{{iitem.goods_number <= 0}}">
                                 <view class='sold-img'>
-                                    <image class='soldout' src='/images/icon/sold-out.png'></image>
+                                    <image lazy-load="true" class='soldout' src='/images/icon/sold-out.png'></image>
                                 </view>
                             </block>
                         </view>
-                        <view class="goods-info {{iitem.goods_number <= 0?'fast-out-status':''}}">
-                            <view class="goods-title">{{iitem.name}}</view>
-                            <view class='price-container'>
-                                <view class='l'>
-                                    <view class='h'>￥{{iitem.has_promo ? iitem.promo_price : iitem.min_retail_price}}</view>
-                                    <view class='promo-origin' wx:if="{{iitem.has_promo}}">￥{{iitem.original_price}}</view>
-                                    <view class='promo-tag' wx:if="{{iitem.has_promo && iitem.promo_tag}}">{{iitem.promo_tag}}</view>
+                            <view class="goods-info {{iitem.goods_number <= 0?'fast-out-status':''}}">
+                                <view class="goods-title">{{iitem.name}}</view>
+                                <view class='price-container'>
+                                    <view class='l'>
+                                        <view class="promo-line">
+                                            <view class='h'>￥{{iitem.displayPrice || iitem.min_retail_price}}</view>
+                                            <view class='promo-origin' wx:if="{{iitem.hasPromotion}}">￥{{iitem.displayOriginalPrice}}</view>
+                                        </view>
+                                        <view class='promo-tag' wx:if="{{iitem.hasPromotion && iitem.displayPromotionTag}}">{{iitem.displayPromotionTag}}</view>
+                                        <view class='promo-countdown' wx:if="{{iitem.hasPromotion && iitem.promotionCountdownText}}">{{iitem.promotionCountdownText}}</view>
+                                    </view>
                                 </view>
                             </view>
-                        </view>
                     </navigator>
                 </view>
             </view>
@@ -178,7 +161,7 @@
         <view class="ui-loading-text">正在加载首页内容</view>
     </view>
     <block wx:else>
-        <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/loading.png"></image>
+        <image lazy-load="true" class="img" src="https://fybshopbk-1369967353.cos.ap-shanghai.myqcloud.com/images/icon/loading.png"></image>
         <view class="text">正在加载中</view>
     </block>
 </view>

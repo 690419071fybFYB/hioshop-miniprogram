@@ -1,0 +1,96 @@
+.page {
+  min-height: 100%;
+  background: #f6f7fb;
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.line {
+  font-size: 26rpx;
+  color: #333;
+  line-height: 1.7;
+}
+
+.wrap {
+  word-break: break-all;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 16rpx;
+}
+
+.btn {
+  margin: 0 12rpx 12rpx 0;
+  font-size: 24rpx;
+}
+
+.primary {
+  background: #e93b63;
+  color: #fff;
+}
+
+.check-item {
+  border-radius: 10rpx;
+  padding: 14rpx;
+  margin-bottom: 12rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.ok {
+  background: #eaf8f0;
+  color: #0f7a37;
+}
+
+.fail {
+  background: #fff0f1;
+  color: #b61c2d;
+}
+
+.log-item {
+  border-top: 1px solid #f0f0f0;
+  padding: 14rpx 0;
+}
+
+.log-item:first-of-type {
+  border-top: none;
+}
+
+.log-time {
+  color: #666;
+  font-size: 22rpx;
+}
+
+.log-event {
+  color: #222;
+  font-size: 24rpx;
+  font-weight: 500;
+  margin-top: 4rpx;
+}
+
+.log-payload {
+  color: #444;
+  font-size: 22rpx;
+  word-break: break-all;
+  margin-top: 4rpx;
+}
+
+.empty {
+  color: #888;
+  font-size: 24rpx;
+}

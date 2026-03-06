@@ -1,12 +1,8 @@
-/**app.wxss**/
+/** app.wxss **/
 @import "styles/tokens.wxss";
 @import "styles/base.wxss";
 
-.container {
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-}
-.hide{
-    display: none;
+/* 避免全局 .container 覆盖各页面布局，统一由页面自身 wxss 控制。 */
+.hide {
+  display: none;
 }

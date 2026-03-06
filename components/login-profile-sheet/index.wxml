@@ -4,63 +4,78 @@
   position="bottom"
   close-on-click-overlay="{{false}}"
   z-index="12000"
-  custom-style="height: 72vh;"
+  custom-style="height: 78vh;"
 >
   <view class="sheet">
-    <view class="sheet-title">完善登录资料</view>
-    <view class="sheet-subtitle">仅需头像、昵称、手机号即可完成登录</view>
-
-    <view class="avatar-wrap">
-      <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
-        <image class="avatar" src="{{avatarDisplayUrl}}"></image>
-      </button>
-      <view class="avatar-tip">点击头像可直接选择微信头像或上传图片</view>
+    <view class="sheet-header">
+      <view class="sheet-title">完善登录资料</view>
+      <view class="sheet-subtitle">仅需 30 秒，完成后可立即领取优惠券并下单</view>
     </view>
 
-    <view class="form">
-      <view class="field">
-        <view class="label">昵称</view>
-        <view class="input-wrap">
-          <input
-            class="input"
-            type="nickname"
-            value="{{nickName}}"
-            bindinput="onNickNameInput"
-            bindblur="onNickNameBlur"
-            placeholder="点击输入框获取微信昵称（必填）"
-          />
-        </view>
-        <view class="field-helper">
-          昵称：点击输入框可选择微信昵称，头像请点上方头像
-        </view>
+    <view class="sheet-card">
+      <view class="avatar-wrap">
+        <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+          <image class="avatar" src="{{avatarDisplayUrl}}"></image>
+          <view class="avatar-edit">更换</view>
+        </button>
       </view>
 
-      <view class="field">
-        <view class="label">手机号</view>
-        <view class="input-wrap" wx:if="{{phoneManualMode}}">
-          <input
-            class="input"
-            type="number"
-            value="{{mobile}}"
-            bindinput="onMobileInput"
-            maxlength="11"
-            placeholder="请输入手机号（必填）"
-          />
+      <view class="form">
+        <view class="field">
+          <view class="label">昵称</view>
+          <view class="input-wrap">
+            <input
+              class="input"
+              type="nickname"
+              value="{{nickName}}"
+              bindinput="onNickNameInput"
+              bindblur="onNickNameBlur"
+              placeholder="请输入昵称（必填）"
+            />
+          </view>
         </view>
-        <view class="input-wrap phone-auth-wrap" wx:else>
-          <view class="input pseudo-input">{{mobile || '点击输入框获取微信手机号（必填）'}}</view>
-          <button
-            class="field-action-btn"
-            open-type="getPhoneNumber"
-            bindgetphonenumber="onGetPhoneNumber"
-          ></button>
-        </view>
-        <view class="field-helper" bindtap="switchPhoneToWechat">
-          手机号：{{phoneAuthorized ? '已授权' : '未授权'}}，{{phoneManualMode ? '当前为手动输入，点此改为微信获取' : '点击输入框将直接发起微信授权'}}
+
+        <view class="field phone-field">
+          <view class="phone-row">
+            <view class="phone-label">手机号：{{mobileMasked}}</view>
+            <button
+              wx:if="{{!phoneAuthorized}}"
+              class="phone-auth-btn"
+              open-type="getPhoneNumber"
+              bindgetphonenumber="onGetPhoneNumber"
+            >
+              去授权
+            </button>
+            <view wx:else class="phone-authorized">已授权</view>
+          </view>
+
+          <view class="phone-helper">授权失败可手动输入</view>
+
+          <view wx:if="{{!phoneManualMode}}" class="phone-manual-toggle" bindtap="togglePhoneManualInput">
+            手动输入手机号
+          </view>
+          <view wx:if="{{phoneManualMode}}" class="phone-manual-collapse" bindtap="togglePhoneManualInput">
+            收起手动输入
+          </view>
+
+          <view class="input-wrap manual-input-wrap" wx:if="{{phoneManualMode}}">
+            <input
+              class="input"
+              type="number"
+              value="{{mobile}}"
+              bindinput="onMobileInput"
+              maxlength="11"
+              placeholder="请输入手机号（必填）"
+            />
+          </view>
         </view>
       </view>
     </view>
 
-    <button class="submit-btn" loading="{{submitting}}" bindtap="submitProfile">完成登录</button>
+    <view class="actions">
+      <button class="submit-btn" loading="{{submitting}}" bindtap="submitProfile">完成登录</button>
+      <view class="actions-tip">仅用于下单与售后联系，我们不会公开展示手机号</view>
+      <view class="cancel-btn" bindtap="onCancel">稍后再说</view>
+    </view>
   </view>
 </van-popup>

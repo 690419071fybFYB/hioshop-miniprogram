@@ -101,7 +101,7 @@
 .search {
     height: 100rpx;
     width: 100%;
-    padding: 0 24rpx;
+    padding: 0 12rpx;
     background: #f9f9f9;
     display: flex;
     justify-content: flex-start;
@@ -123,14 +123,15 @@
 }
 
 .banner-wrap {
-    width: 100%;
+    width: calc(100% - 24rpx);
+    margin: 0 auto;
     height: 440rpx;
     display: flex;
     justify-content: center;
 }
 
 .banner {
-    width: 750rpx;
+    width: 100%;
     height: 440rpx;
 }
 
@@ -148,7 +149,7 @@
     background-color: #fff;
     box-shadow: 1rpx 4rpx 6rpx #f1f1f1;
     /* margin-bottom: 20rpx; */
-    padding: 0 30rpx;
+    padding: 0 12rpx;
 }
 
 .notice-swiper {
@@ -181,17 +182,44 @@
 }
 
 .catalog-wrap {
-    margin: 20rpx 0;
+    margin: 12rpx 0 0;
     width: 100%;
     height: 144rpx;
     box-sizing: border-box;
 }
 
+.catalog-page-hint {
+    padding: 4rpx 0 8rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.catalog-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.catalog-dot {
+    width: 10rpx;
+    height: 10rpx;
+    border-radius: 10rpx;
+    background: #d6d6d6;
+    margin: 0 6rpx;
+    transition: all .2s ease;
+}
+
+.catalog-dot.active {
+    width: 20rpx;
+    background: #ff3456;
+}
+
 .coupon-zone {
-    margin: 20rpx 24rpx 12rpx;
-    padding: 20rpx;
+    margin: 16rpx 12rpx 8rpx;
+    padding: 14rpx 14rpx 12rpx;
     background: linear-gradient(180deg, #fff0f4 0%, #fff8f8 100%);
-    border-radius: 18rpx;
+    border-radius: 14rpx;
 }
 
 .promotion-zone {
@@ -316,34 +344,34 @@
 }
 
 .coupon-zone-title {
-    font-size: 34rpx;
+    font-size: 30rpx;
     font-weight: 700;
     color: #222;
 }
 
 .coupon-zone-more {
-    font-size: 24rpx;
+    font-size: 22rpx;
     color: #ff3456;
 }
 
 .coupon-loading {
-    margin-top: 16rpx;
-    font-size: 24rpx;
+    margin-top: 12rpx;
+    font-size: 22rpx;
     color: #888;
 }
 
 .coupon-empty {
-    margin-top: 18rpx;
-    padding: 20rpx;
+    margin-top: 12rpx;
+    padding: 14rpx;
     background: #fff;
-    border-radius: 12rpx;
+    border-radius: 10rpx;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .coupon-empty-text {
-    font-size: 24rpx;
+    font-size: 22rpx;
     color: #666;
 }
 
@@ -355,21 +383,32 @@
 }
 
 .coupon-scroll {
-    margin-top: 18rpx;
+    margin-top: 12rpx;
     white-space: nowrap;
 }
 
 .coupon-item {
-    width: 220rpx;
-    min-height: 212rpx;
-    padding: 18rpx 14rpx 16rpx;
-    margin-right: 14rpx;
+    width: 196rpx;
+    min-height: 166rpx;
+    padding: 14rpx 12rpx 10rpx;
+    margin-right: 10rpx;
     display: inline-flex;
     flex-direction: column;
     box-sizing: border-box;
     background: #fff;
-    border-radius: 12rpx;
+    border-radius: 14rpx;
     border: 1rpx solid #ffd7de;
+    position: relative;
+    overflow: hidden;
+}
+
+.coupon-item::after {
+    content: "";
+    position: absolute;
+    left: 10rpx;
+    right: 10rpx;
+    bottom: 56rpx;
+    border-bottom: 1rpx dashed #ffd5de;
 }
 
 .coupon-item.received {
@@ -377,42 +416,56 @@
 }
 
 .coupon-amount {
-    font-size: 40rpx;
-    line-height: 46rpx;
+    font-size: 34rpx;
+    line-height: 40rpx;
     font-weight: 700;
     color: #ff3456;
 }
 
 .coupon-limit {
     margin-top: 4rpx;
-    font-size: 22rpx;
+    font-size: 20rpx;
     color: #ff3456;
 }
 
 .coupon-rule {
-    margin-top: 8rpx;
-    min-height: 60rpx;
-    font-size: 20rpx;
-    line-height: 30rpx;
+    margin-top: 6rpx;
+    min-height: 44rpx;
+    font-size: 18rpx;
+    line-height: 22rpx;
     color: #666;
     white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .coupon-btn {
     margin-top: auto;
     width: 100%;
-    height: 54rpx;
-    line-height: 54rpx;
-    font-size: 22rpx;
-    border-radius: 28rpx;
+    height: 46rpx;
+    line-height: 46rpx;
+    font-size: 20rpx;
+    border-radius: 23rpx;
+}
+
+.coupon-login-tip {
+    margin-top: 6rpx;
+    text-align: center;
+    font-size: 18rpx;
+    color: #9f6a74;
 }
 
 .catalog-wrap .first {
     width: 100%;
     box-sizing: border-box;
-    padding: 0 30rpx;
+    padding: 0 12rpx;
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    column-gap: 24rpx;
+    row-gap: 16rpx;
 }
 
 .catalog-wrap .icon-navi {
@@ -458,18 +511,18 @@
 }
 
 .list-wrap .new-box {
-    width: 210rpx;
+    width: 226rpx;
     /* height: 330rpx; */
     float: left;
-    margin: 0 30rpx 20rpx 0;
+    margin: 0 24rpx 18rpx 0;
 }
 
 .new-box .sold-img {
     position: absolute;
     left: 0;
     top: 0;
-    width: 210rpx;
-    height: 210rpx;
+    width: 226rpx;
+    height: 226rpx;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -484,7 +537,7 @@
 .goods-container .list-wrap {
     display: block;
     width: 100%;
-    padding: 26rpx 30rpx 10rpx 30rpx;
+    padding: 20rpx 12rpx 6rpx 12rpx;
     height: auto;
     box-sizing: border-box;
 }
@@ -500,15 +553,15 @@
 }
 
 .new-box .navi-url .image {
-    width: 210rpx;
-    height: 210rpx;
+    width: 226rpx;
+    height: 226rpx;
     border-radius: 8rpx;
     background: #f9f9f9;
 }
 
 .new-box .navi-url .box {
-    height: 210rpx;
-    width: 210rpx;
+    height: 226rpx;
+    width: 226rpx;
     position: relative;
     margin-bottom: 10rpx;
     border-radius: 4rpx;
@@ -564,6 +617,7 @@
 .new-box .navi-url .goods-info .price-container .l {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
 }
 
 .new-box .navi-url .goods-info .price-container .r {
@@ -582,16 +636,24 @@
     color: #e53333;
 }
 
+.new-box .navi-url .goods-info .price-container .l .promo-line {
+    display: flex;
+    align-items: baseline;
+    column-gap: 8rpx;
+}
+
 .new-box .navi-url .goods-info .price-container .l .promo-origin {
-    margin-top: 4rpx;
     font-size: 20rpx;
     color: #999;
     text-decoration: line-through;
 }
 
 .new-box .navi-url .goods-info .price-container .l .promo-tag {
-    margin-top: 6rpx;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    max-width: 100%;
+    margin-top: 4rpx;
     padding: 0 8rpx;
     line-height: 28rpx;
     font-size: 18rpx;
@@ -599,6 +661,15 @@
     background: #fff1f1;
     border: 1rpx solid #ffd4d4;
     border-radius: 6rpx;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.new-box .navi-url .goods-info .price-container .l .promo-countdown {
+    margin-top: 4rpx;
+    font-size: 18rpx;
+    color: #b24f63;
 }
 
 .new-box .navi-url .goods-info .price-container .l .b {
@@ -620,7 +691,7 @@
 }
 
 .topic-container .banner-container {
-    margin: 0 30rpx;
+    margin: 0 12rpx;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -660,7 +731,7 @@
 }
 
 .category-title {
-    padding: 0 30rpx;
+    padding: 0 12rpx;
 }
 
 .category-title .title {
@@ -708,7 +779,7 @@
 }
 /* UI v2 */
 .ui-v2 .search {
-  margin: 20rpx 24rpx;
+  margin: 20rpx 12rpx;
   width: auto;
   height: 88rpx;
   background: #fff;
@@ -724,7 +795,7 @@
 }
 
 .ui-v2 .banner-wrap {
-  width: calc(100% - 48rpx);
+  width: calc(100% - 24rpx);
   margin: 0 auto;
   height: 380rpx;
 }
@@ -740,7 +811,7 @@
 
 .ui-v2 .topic-container {
   background: #fff;
-  margin: 0 24rpx 24rpx;
+  margin: 0 12rpx 16rpx;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
   overflow: hidden;

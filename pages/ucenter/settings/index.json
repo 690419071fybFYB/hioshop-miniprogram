@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "设置"
+  "navigationBarTitleText": "设置",
+  "usingComponents": {
+    "login-profile-sheet": "/components/login-profile-sheet/index"
+  }
 }

@@ -17,8 +17,7 @@ Page({
         checkedSpecPrice: 0,
         checkedSpecPromoPrice: 0,
         checkedSpecOriginalPrice: 0,
-        checkedSpecHasPromo: false,
-        goodsPromoCountdownText: '',
+        checkedSpecHasCouponPromo: false,
         number: 1,
         checkedSpecText: '',
         tmpSpecText: '请选择规格和数量',
@@ -40,50 +39,102 @@ Page({
         uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
         vantEnabled: !!api.features.vantEnabled
     },
-    formatCountdown(seconds) {
-        const total = Math.max(0, Number(seconds || 0));
-        const h = Math.floor(total / 3600);
-        const m = Math.floor((total % 3600) / 60);
-        const s = total % 60;
-        const pad = (n) => String(n).padStart(2, '0');
-        return `${pad(h)}:${pad(m)}:${pad(s)}`;
-    },
-    clearPromoTimer() {
-        if (this._promoTimer) {
-            clearInterval(this._promoTimer);
-            this._promoTimer = null;
+    formatPromotionCountdown(endAt) {
+        const endTs = Number(endAt || 0);
+        if (!endTs) {
+            return '';
         }
+        const remain = endTs - Math.floor(Date.now() / 1000);
+        if (remain <= 0) {
+            return '活动已结束';
+        }
+        const day = Math.floor(remain / 86400);
+        const hour = Math.floor((remain % 86400) / 3600);
+        const minute = Math.floor((remain % 3600) / 60);
+        const second = Math.floor(remain % 60);
+        if (day > 0) {
+            return `剩余${day}天${hour}时`;
+        }
+        const pad = (n) => String(n).padStart(2, '0');
+        return `剩余${pad(hour)}:${pad(minute)}:${pad(second)}`;
     },
-    startPromoTimer(seconds) {
-        this.clearPromoTimer();
-        let remain = Math.max(0, Number(seconds || 0));
-        this.setData({
-            goodsPromoCountdownText: remain > 0 ? this.formatCountdown(remain) : ''
+    mapPromotionDisplay(source) {
+        const item = Object.assign({}, source || {});
+        const hasPromotion = Number(item.has_promotion || 0) === 1;
+        const retailPrice = item.retail_price || item.min_retail_price || 0;
+        const displayPrice = hasPromotion ? (item.promotion_price || item.promo_price || retailPrice) : retailPrice;
+        const displayOriginalPrice = hasPromotion ? (item.promotion_original_price || item.original_price || retailPrice) : retailPrice;
+        const displayPromotionTag = hasPromotion ? (item.promotion_tag || item.promo_tag || '') : '';
+        const promotionEndAt = Number(item.promotion_end_at || 0);
+        return Object.assign({}, item, {
+            hasPromotion,
+            displayPrice,
+            displayOriginalPrice,
+            displayPromotionTag,
+            promotionEndAt,
+            promotionCountdownText: hasPromotion ? this.formatPromotionCountdown(promotionEndAt) : ''
         });
-        if (remain <= 0) return;
-        this._promoTimer = setInterval(() => {
-            remain -= 1;
-            if (remain <= 0) {
-                this.clearPromoTimer();
-                this.setData({
-                    goodsPromoCountdownText: ''
-                });
-                return;
-            }
-            this.setData({
-                goodsPromoCountdownText: this.formatCountdown(remain)
-            });
-        }, 1000);
     },
     getPriceDisplay(source) {
-        const item = source || {};
-        const hasPromo = Number(item.has_promo || 0) === 1 || Number(item.has_coupon_promo || 0) === 1;
-        const retailPrice = item.retail_price || item.min_retail_price || 0;
+        const item = this.mapPromotionDisplay(source);
         return {
-            hasPromo,
-            promoPrice: hasPromo ? (item.promo_price || retailPrice) : retailPrice,
-            originalPrice: hasPromo ? (item.original_price || retailPrice) : retailPrice
+            hasCouponPromo: !!item.hasPromotion,
+            promoPrice: item.displayPrice,
+            originalPrice: item.displayOriginalPrice
         };
+    },
+    hasPromotionInGoods(goods, productList) {
+        if (goods && goods.hasPromotion) {
+            return true;
+        }
+        return (productList || []).some((item) => !!item.hasPromotion);
+    },
+    refreshPromotionCountdown() {
+        const goods = this.data.goods || {};
+        const productList = this.data.productList || [];
+        let goodsChanged = false;
+        let listChanged = false;
+        let nextGoods = goods;
+        if (goods.hasPromotion) {
+            const nextGoodsCountdown = this.formatPromotionCountdown(goods.promotionEndAt);
+            if (nextGoodsCountdown !== goods.promotionCountdownText) {
+                goodsChanged = true;
+                nextGoods = Object.assign({}, goods, {
+                    promotionCountdownText: nextGoodsCountdown
+                });
+            }
+        }
+        const nextProductList = productList.map((item) => {
+            if (!item.hasPromotion) {
+                return item;
+            }
+            const nextCountdown = this.formatPromotionCountdown(item.promotionEndAt);
+            if (nextCountdown === item.promotionCountdownText) {
+                return item;
+            }
+            listChanged = true;
+            return Object.assign({}, item, {
+                promotionCountdownText: nextCountdown
+            });
+        });
+        if (goodsChanged || listChanged) {
+            this.setData({
+                goods: nextGoods,
+                productList: nextProductList
+            });
+        }
+    },
+    stopPromotionTicker() {
+        if (this.promotionTicker) {
+            clearInterval(this.promotionTicker);
+            this.promotionTicker = null;
+        }
+    },
+    startPromotionTicker() {
+        this.stopPromotionTicker();
+        this.promotionTicker = setInterval(() => {
+            this.refreshPromotionCountdown();
+        }, 1000);
     },
     hideDialog: function (e) {
         let that = this;
@@ -145,7 +196,7 @@ Page({
         }
     },
     onUnload: function() {
-        this.clearPromoTimer();
+        this.stopPromotionTicker();
     },
     handleTap: function(event) { //阻止冒泡 
     },
@@ -172,33 +223,33 @@ Page({
                 for (const item of res.data.gallery) {
                     galleryImages.push(item.img_url);
                 }
-                const normalizedInfo = Object.assign({}, res.data.info, {
-                    has_promo: Number(res.data.info.has_promo || res.data.info.has_coupon_promo || 0)
-                });
-                const normalizedProductList = (res.data.productList || []).map((item) => Object.assign({}, item, {
-                    has_promo: Number(item.has_promo || item.has_coupon_promo || 0)
-                }));
-                const defaultPriceDisplay = that.getPriceDisplay(normalizedInfo);
+                const goodsInfo = that.mapPromotionDisplay(res.data.info);
+                const productList = (res.data.productList || []).map((item) => that.mapPromotionDisplay(item));
+                const defaultPriceDisplay = that.getPriceDisplay(goodsInfo);
                 that.setData({
-                    goods: normalizedInfo,
-                    goodsNumber: normalizedInfo.goods_number,
+                    goods: goodsInfo,
+                    goodsNumber: goodsInfo.goods_number,
                     gallery: res.data.gallery,
                     specificationList: res.data.specificationList,
-                    productList: normalizedProductList,
+                    productList: productList,
                     checkedSpecPrice: defaultPriceDisplay.promoPrice,
                     checkedSpecPromoPrice: defaultPriceDisplay.promoPrice,
                     checkedSpecOriginalPrice: defaultPriceDisplay.originalPrice,
-                    checkedSpecHasPromo: defaultPriceDisplay.hasPromo,
+                    checkedSpecHasCouponPromo: defaultPriceDisplay.hasCouponPromo,
                     galleryImages: galleryImages,
                     loading:1,
                     hasError: false,
                     errorMessage: ''
                 });
-                that.startPromoTimer(Number(normalizedInfo.promo_countdown_seconds || 0));
+                if (that.hasPromotionInGoods(goodsInfo, productList)) {
+                    that.startPromotionTicker();
+                } else {
+                    that.stopPromotionTicker();
+                }
                 setTimeout(() => {
-                    WxParse.wxParse('goodsDetail', 'html', normalizedInfo.goods_desc, that);
+                    WxParse.wxParse('goodsDetail', 'html', res.data.info.goods_desc, that);
                 }, 1000);
-                wx.setStorageSync('goodsImage', normalizedInfo.https_pic_url);
+                wx.setStorageSync('goodsImage', res.data.info.https_pic_url);
                 that.consumePendingCartAction();
             }
             else{
@@ -210,6 +261,7 @@ Page({
                 hasError: true,
                 errorMessage: '商品详情加载失败'
             });
+            that.stopPromotionTicker();
             util.showErrorToast('商品详情加载失败');
         });
     },
@@ -335,7 +387,7 @@ Page({
                     checkedSpecPrice: selectedPriceDisplay.promoPrice,
                     checkedSpecPromoPrice: selectedPriceDisplay.promoPrice,
                     checkedSpecOriginalPrice: selectedPriceDisplay.originalPrice,
-                    checkedSpecHasPromo: selectedPriceDisplay.hasPromo,
+                    checkedSpecHasCouponPromo: selectedPriceDisplay.hasCouponPromo,
                     goodsNumber: checkedProduct.goods_number,
                     soldout: true
                 });
@@ -350,7 +402,7 @@ Page({
                     checkedSpecPrice: selectedPriceDisplay.promoPrice,
                     checkedSpecPromoPrice: selectedPriceDisplay.promoPrice,
                     checkedSpecOriginalPrice: selectedPriceDisplay.originalPrice,
-                    checkedSpecHasPromo: selectedPriceDisplay.hasPromo,
+                    checkedSpecHasCouponPromo: selectedPriceDisplay.hasCouponPromo,
                     goodsNumber: checkedProduct.goods_number,
                     soldout: false
                 });
@@ -363,7 +415,7 @@ Page({
                     checkedSpecPrice: defaultPriceDisplay.promoPrice,
                     checkedSpecPromoPrice: defaultPriceDisplay.promoPrice,
                     checkedSpecOriginalPrice: defaultPriceDisplay.originalPrice,
-                    checkedSpecHasPromo: defaultPriceDisplay.hasPromo,
+                    checkedSpecHasCouponPromo: defaultPriceDisplay.hasCouponPromo,
                     soldout: true
                 });
             }
@@ -374,7 +426,7 @@ Page({
                 checkedSpecPrice: defaultPriceDisplay.promoPrice,
                 checkedSpecPromoPrice: defaultPriceDisplay.promoPrice,
                 checkedSpecOriginalPrice: defaultPriceDisplay.originalPrice,
-                checkedSpecHasPromo: defaultPriceDisplay.hasPromo,
+                checkedSpecHasCouponPromo: defaultPriceDisplay.hasCouponPromo,
                 soldout: false
             });
         }
@@ -469,10 +521,10 @@ Page({
         }
     },
     onHide:function(){
-        this.clearPromoTimer();
         this.setData({
             autoplay:false
-        })
+        });
+        this.stopPromotionTicker();
     },
     getCartCount: function() {
         let that = this;

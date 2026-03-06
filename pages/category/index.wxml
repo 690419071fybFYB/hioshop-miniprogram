@@ -9,7 +9,7 @@
     </view>
     <view class="search">
         <navigator url="/pages/search/search" class="input">
-            <image class="icon" src="/images/icon/search.png"></image>
+            <image lazy-load="true" class="icon" src="/images/icon/search.png"></image>
             <text class="txt">搜索, 共{{goodsCount}}款好味</text>
         </navigator>
     </view>
@@ -21,7 +21,7 @@
         <scroll-view class="cate" scroll-y="true" lower-threshold="120" bindscrolltolower="onBottom" bindscroll="onCateScroll">
             <block wx:if="{{loading == 0}}">
                 <view class='banner-container' wx:if="{{nowId!= 0 && index_banner_img == 1}}">
-                    <image mode='aspectFill' style="width:100%;height:{{currentCategory.p_height}}rpx" src='{{currentCategory.img_url}}'>
+                    <image lazy-load="true" mode='aspectFill' style="width:100%;height:{{currentCategory.p_height}}rpx" src='{{currentCategory.img_url}}'>
                     </image>
                     <view class="bg" style="height:{{currentCategory.p_height}}rpx;line-height:{{currentCategory.p_height}}rpx;"></view>
                     <view class="text" style="height:{{currentCategory.p_height}}rpx;line-height:{{currentCategory.p_height}}rpx;">{{currentCategory.name}}</view>
@@ -30,13 +30,13 @@
                     <view class="goods-box {{(index+1)%2 == 0?'no-margin':''}}" wx:for="{{list}}" wx:for-index="index" wx:for-item="item" wx:key="id">
                         <navigator hover-class='none' class='navi-url' url="/pages/goods/goods?id={{item.id}}">
                             <view class="box">
-                                <image src="{{item.list_pic_url}}" class="image"></image>
+                                <image lazy-load="true" src="{{item.list_pic_url}}" class="image"></image>
                                 <van-tag wx:if="{{uiV2 && item.is_new == 1}}" class='new-tag' type="danger" plain>新品</van-tag>
                                 <view wx:if="{{!uiV2 && item.is_new == 1}}" class='new-tag'>新品</view>
                                 <block wx:if="{{item.goods_number <= 0}}">
                                     <!-- <view class='no-goods-mask'></view> -->
                                     <view class='sold-img'>
-                                        <image class='soldout' src='/images/icon/sold-out.png'></image>
+                                        <image lazy-load="true" class='soldout' src='/images/icon/sold-out.png'></image>
                                     </view>
                                 </block>
                             </view>
@@ -45,9 +45,12 @@
                                 <view class="goods-intro">{{item.goods_brief}}</view>
                                 <view class='price-container'>
                                     <view class='l'>
-                                        <view class='h'>￥{{item.has_promo ? item.promo_price : item.min_retail_price}}</view>
-                                        <view class='promo-origin' wx:if="{{item.has_promo}}">￥{{item.original_price}}</view>
-                                        <view class='promo-tag' wx:if="{{item.has_promo && item.promo_tag}}">{{item.promo_tag}}</view>
+                                        <view class='promo-line'>
+                                            <view class='h'>￥{{item.displayPrice || item.min_retail_price}}</view>
+                                            <view class='promo-origin' wx:if="{{item.hasPromotion}}">￥{{item.displayOriginalPrice}}</view>
+                                        </view>
+                                        <view class='promo-tag' wx:if="{{item.hasPromotion && item.displayPromotionTag}}">{{item.displayPromotionTag}}</view>
+                                        <view class='promo-countdown' wx:if="{{item.hasPromotion && item.promotionCountdownText}}">{{item.promotionCountdownText}}</view>
                                     </view>
                                 </view>
                             </view>
@@ -64,7 +67,7 @@
             </block>
             <block wx:else>
                 <view class="loading-wrap" wx:if="{{!uiV2}}">
-                    <image class="img" src="https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/loading.png"></image>
+                    <image lazy-load="true" class="img" src="https://fybshopbk-1369967353.cos.ap-shanghai.myqcloud.com/images/icon/loading.png"></image>
                     <view class="text">正在加载中</view>
                 </view>
                 <view class="ui-loading-wrap" wx:if="{{uiV2}}">

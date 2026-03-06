@@ -66,6 +66,11 @@ Page({
       url: '/pages/ucenter/about/index',
     });
   },
+  toDebugNetwork: function () {
+    wx.navigateTo({
+      url: '/pages/debug/network/index'
+    });
+  },
   toFootprint: function (e) {
     if (!this.ensureProfileReady()) return;
     wx.navigateTo({
@@ -184,6 +189,17 @@ Page({
           showLoginProfileSheet: false
         });
       }
+    }).catch(function (err) {
+      // 避免未处理 Promise 导致 MiniProgramError
+      if (err && err.code === 'UNAUTHORIZED') {
+        session.setProfileCompleted(false);
+        that.setData({
+          hasUserInfo: false,
+          showLoginProfileSheet: false
+        });
+        return;
+      }
+      util.showErrorToast((err && err.message) || '用户信息加载失败');
     });
   },
   onProfileSheetSuccess(e) {
@@ -222,6 +238,10 @@ Page({
           status: status
         });
       }
+    }).catch(function () {
+      that.setData({
+        status: {}
+      });
     });
   },
 })

@@ -521,6 +521,27 @@ function normalizeContentImageUrl(url, root) {
     return finalUrl;
 }
 
+function appendQuery(url, query) {
+    if (!url || !query) return url;
+    return url + (url.indexOf('?') >= 0 ? '&' : '?') + query;
+}
+
+function optimizeProductListImage(url) {
+    const normalized = normalizeContentImageUrl(url);
+    if (!normalized || normalized.startsWith('/images/')) {
+        return normalized;
+    }
+    // 阿里云 OSS 缩略图参数（分类/列表卡片用）
+    if (/aliyuncs\.com/i.test(normalized)) {
+        return appendQuery(normalized, 'x-oss-process=image/resize,m_fill,w_560,h_560/quality,q_82');
+    }
+    // 腾讯 COS 缩略图参数（兼容历史/切换场景）
+    if (/myqcloud\.com/i.test(normalized)) {
+        return appendQuery(normalized, 'imageMogr2/thumbnail/560x560>/quality/82');
+    }
+    return normalized;
+}
+
 function normalizeResponseImageFields(payload, root) {
     const imageLikeKeys = [
         'image_url',
@@ -581,5 +602,6 @@ module.exports = {
     getDeviceInfo,
     normalizeImageUrl,
     normalizeContentImageUrl,
-    normalizeResponseImageFields
+    normalizeResponseImageFields,
+    optimizeProductListImage
 }

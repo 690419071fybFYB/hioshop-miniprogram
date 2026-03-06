@@ -1,18 +1,20 @@
 <view class="container">
-    <view class='logo'>
-        <image class='logo-img' src='https://fyb-shop-bucket.oss-cn-shenzhen.aliyuncs.com/images/icon/loading.png'></image>
+    <view class="brand">
+        <view class='logo'>
+            <image class='logo-img' src='https://fybshopbk-1369967353.cos.ap-shanghai.myqcloud.com/images/icon/loading.png'></image>
+        </view>
+        <view class='logo-name'>海风小店</view>
+        <view class='intro'>美妆好物 · 甄选优品</view>
     </view>
-    <view class='logo-name'>海风小店</view>
-    <view class='intro'>欢迎使用海风小店</view>
-    <view class='login'>请完成微信授权以继续使用</view>
-    <!-- <button class='btn-login' open-type="getUserInfo" bindgetuserinfo='getUserInfo'>
-        <image src='/images/icon/weixin-w.png' class='img-w'></image>
-        <view class='text'>微信快捷登录</view>
-    </button> -->
-    <button class='btn-login' bindtap='getUserProfile'>
-        <view class='img-w'></view>
-        <view class='text'>微信快捷登录</view>
-    </button>
 
-    <view class="cancel" bindtap="goBack">取消</view>
+    <view class="auth-card">
+        <view class='login-title'>微信授权登录</view>
+        <view class='login-desc'>登录后可领取优惠券、同步订单和收货地址</view>
+        <button class='btn-login' bindtap='getUserProfile'>
+            <view class='img-w'>微</view>
+            <view class='text'>微信一键登录</view>
+        </button>
+    </view>
+
+    <view class="cancel" bindtap="goBack">暂不登录</view>
 </view>

@@ -9,7 +9,6 @@ const app = getApp()
 Page({
     data: {
         floorGoods: [],
-        promotionGoods: [],
         couponList: [],
         couponLoading: false,
         couponNeedLogin: false,
@@ -28,50 +27,106 @@ Page({
         showContact: 1,
         hasError: false,
         errorMessage: '',
+        catalogPageCount: 1,
+        catalogPages: [0],
+        currentCatalogPage: 0,
         uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
-        vantEnabled: !!api.features.vantEnabled,
-        promotionV1: !!api.features.promotionV1
+        vantEnabled: !!api.features.vantEnabled
     },
-    formatCountdown(seconds) {
-        const total = Math.max(0, Number(seconds || 0));
-        const h = Math.floor(total / 3600);
-        const m = Math.floor((total % 3600) / 60);
-        const s = total % 60;
+    formatPromotionCountdown(endAt) {
+        const endTs = Number(endAt || 0);
+        if (!endTs) {
+            return '';
+        }
+        const remain = endTs - Math.floor(Date.now() / 1000);
+        if (remain <= 0) {
+            return '活动已结束';
+        }
+        const day = Math.floor(remain / 86400);
+        const hour = Math.floor((remain % 86400) / 3600);
+        const minute = Math.floor((remain % 3600) / 60);
+        const second = Math.floor(remain % 60);
+        if (day > 0) {
+            return `剩余${day}天${hour}时`;
+        }
         const pad = (n) => String(n).padStart(2, '0');
-        return `${pad(h)}:${pad(m)}:${pad(s)}`;
+        return `剩余${pad(hour)}:${pad(minute)}:${pad(second)}`;
     },
-    normalizeGoodsPromo(item) {
-        const goods = Object.assign({}, item || {});
-        const minRetail = Number(goods.min_retail_price || goods.retail_price || 0);
-        const hasPromo = Number(goods.has_promo || 0) === 1 || Number(goods.has_coupon_promo || 0) === 1;
-        goods.has_promo = hasPromo ? 1 : 0;
-        goods.promo_price = hasPromo ? (goods.promo_price || minRetail) : minRetail;
-        goods.original_price = hasPromo ? (goods.original_price || minRetail) : minRetail;
-        goods.promo_tag = goods.promo_tag || '';
-        goods.promo_source = goods.promo_source || 'none';
-        goods.promo_type = goods.promo_type || '';
-        goods.promo_end_at = Number(goods.promo_end_at || 0);
-        goods.promo_countdown_seconds = Math.max(0, Number(goods.promo_countdown_seconds || 0));
-        goods.promo_stock_percent = Number(goods.promo_stock_percent || 0);
-        goods.promo_countdown_text = goods.promo_countdown_seconds > 0 ? this.formatCountdown(goods.promo_countdown_seconds) : '';
-        return goods;
+    mapGoodsPromotionDisplay(goods) {
+        const item = Object.assign({}, goods || {});
+        const hasPromotion = Number(item.has_promotion || 0) === 1;
+        const basePrice = item.min_retail_price || item.retail_price || '0.00';
+        const displayPrice = hasPromotion ? (item.promotion_price || item.promo_price || basePrice) : basePrice;
+        const displayOriginalPrice = hasPromotion ? (item.promotion_original_price || item.original_price || basePrice) : basePrice;
+        const displayPromotionTag = hasPromotion ? (item.promotion_tag || item.promo_tag || '') : '';
+        const promotionEndAt = Number(item.promotion_end_at || 0);
+        item.hasPromotion = hasPromotion;
+        item.displayPrice = displayPrice;
+        item.displayOriginalPrice = displayOriginalPrice;
+        item.displayPromotionTag = displayPromotionTag;
+        item.promotionEndAt = promotionEndAt;
+        item.promotionCountdownText = hasPromotion ? this.formatPromotionCountdown(promotionEndAt) : '';
+        return item;
     },
-    buildPromotionGoods(categoryList) {
-        const result = [];
-        (categoryList || []).forEach((category) => {
-            (category.goodsList || []).forEach((goods) => {
-                if (Number(goods.has_promo || 0) !== 1) return;
-                if (goods.promo_source !== 'promotion') return;
-                result.push(goods);
+    mapCategoryPromotionDisplay(categoryList) {
+        return (categoryList || []).map((category) => ({
+            ...category,
+            goodsList: (category.goodsList || []).map((goods) => this.mapGoodsPromotionDisplay(goods))
+        }));
+    },
+    hasPromotionGoods(categoryList) {
+        return (categoryList || []).some((category) => (category.goodsList || []).some((goods) => !!goods.hasPromotion));
+    },
+    refreshPromotionCountdown() {
+        const floorGoods = this.data.floorGoods || [];
+        let changed = false;
+        const nextFloorGoods = floorGoods.map((category) => {
+            const nextGoodsList = (category.goodsList || []).map((goods) => {
+                if (!goods.hasPromotion) {
+                    return goods;
+                }
+                const nextCountdown = this.formatPromotionCountdown(goods.promotionEndAt);
+                if (nextCountdown === goods.promotionCountdownText) {
+                    return goods;
+                }
+                changed = true;
+                return Object.assign({}, goods, {
+                    promotionCountdownText: nextCountdown
+                });
+            });
+            return Object.assign({}, category, {
+                goodsList: nextGoodsList
             });
         });
-        result.sort((a, b) => {
-            const ca = Number(a.promo_countdown_seconds || 0);
-            const cb = Number(b.promo_countdown_seconds || 0);
-            if (ca === cb) return Number(a.id || 0) - Number(b.id || 0);
-            return ca - cb;
-        });
-        return result.slice(0, 10);
+        if (changed) {
+            this.setData({
+                floorGoods: nextFloorGoods
+            });
+        }
+    },
+    stopPromotionTicker() {
+        if (this.promotionTicker) {
+            clearInterval(this.promotionTicker);
+            this.promotionTicker = null;
+        }
+    },
+    startPromotionTicker() {
+        this.stopPromotionTicker();
+        this.promotionTicker = setInterval(() => {
+            this.refreshPromotionCountdown();
+        }, 1000);
+    },
+    mapCouponItem(item, needLoginToReceive) {
+        const hasReceived = Number(item && item.has_received) === 1;
+        return {
+            ...item,
+            ruleText: this.formatCouponRule(item),
+            amountText: item.type === 'full_reduction' ? `${item.reduce_amount}元` : `${item.discount_rate}折`,
+            limitText: Number(item.threshold_amount || 0) > 0 ? `满${item.threshold_amount}可用` : '无门槛',
+            needLoginToReceive: !!needLoginToReceive,
+            actionText: hasReceived ? '已领取' : (needLoginToReceive ? '登录后领取' : '立即领取'),
+            actionDisabled: hasReceived
+        };
     },
     formatCouponRule(coupon) {
         if (!coupon) return '';
@@ -83,27 +138,14 @@ Page({
     getCouponList: function () {
         const that = this;
         const token = wx.getStorageSync('token') || '';
-        if (!token) {
-            that.setData({
-                couponList: [],
-                couponLoading: false,
-                couponNeedLogin: true,
-                couponSectionReady: true
-            });
-            return;
-        }
+        const needLoginToReceive = !token;
         that.setData({ couponLoading: true, couponSectionReady: false });
-        util.request(api.CouponCenter, {}, 'GET', { page: that, silent401: true }).then(function (res) {
+        util.request(api.CouponCenter, {}, 'GET', { page: that, silent401: true, timeout: 5000, retry: 0 }).then(function (res) {
             if (res.errno === 0) {
-                const list = (res.data || []).slice(0, 4).map((item) => ({
-                    ...item,
-                    ruleText: that.formatCouponRule(item),
-                    amountText: item.type === 'full_reduction' ? `${item.reduce_amount}元` : `${item.discount_rate}折`,
-                    limitText: Number(item.threshold_amount || 0) > 0 ? `满${item.threshold_amount}可用` : '无门槛'
-                }));
+                const list = (res.data || []).slice(0, 4).map((item) => that.mapCouponItem(item, needLoginToReceive));
                 that.setData({
                     couponList: list,
-                    couponNeedLogin: false,
+                    couponNeedLogin: needLoginToReceive,
                     couponSectionReady: true
                 });
                 return;
@@ -114,10 +156,9 @@ Page({
                 couponSectionReady: true
             });
         }).catch(function (err) {
-            const unauthorized = err && err.code === 'UNAUTHORIZED';
             that.setData({
                 couponList: [],
-                couponNeedLogin: unauthorized,
+                couponNeedLogin: false,
                 couponSectionReady: true
             });
         }).finally(function () {
@@ -142,6 +183,14 @@ Page({
             util.showErrorToast('优惠券参数错误');
             return;
         }
+        const token = wx.getStorageSync('token') || '';
+        if (!token) {
+            util.showErrorToast('请先登录后领取优惠券');
+            wx.switchTab({
+                url: '/pages/ucenter/index/index'
+            });
+            return;
+        }
         const that = this;
         util.request(api.CouponReceive, { couponId }, 'POST', { page: that, silent401: true }).then(function (res) {
             if (res.errno === 0) {
@@ -152,7 +201,10 @@ Page({
             util.showErrorToast(res.errmsg || '领取失败');
         }).catch(function (err) {
             if (err && err.code === 'UNAUTHORIZED') {
-                util.showErrorToast('请先登录');
+                util.showErrorToast('请先登录后领取优惠券');
+                wx.switchTab({
+                    url: '/pages/ucenter/index/index'
+                });
                 return;
             }
             util.showErrorToast((err && err.message) || '领取失败');
@@ -177,7 +229,8 @@ Page({
     onHide: function () {
         this.setData({
             autoplay: false
-        })
+        });
+        this.stopPromotionTicker();
     },
     goSearch: function () {
         wx.navigateTo({
@@ -209,25 +262,29 @@ Page({
     },
     getIndexData: function () {
         let that = this;
-        util.request(api.IndexUrl, {}, 'GET', { page: that }).then(function (res) {
+        util.request(api.IndexUrl, {}, 'GET', { page: that, timeout: 5000, retry: 0 }).then(function (res) {
             if (res.errno === 0) {
-                const categoryList = (res.data.categoryList || []).map((category) => {
-                    const goodsList = (category.goodsList || []).map((goods) => that.normalizeGoodsPromo(goods));
-                    return Object.assign({}, category, {
-                        goodsList
-                    });
-                });
-                const promotionGoods = that.buildPromotionGoods(categoryList);
+                const channelList = Array.isArray(res.data.channel) ? res.data.channel : [];
+                const categoryList = that.mapCategoryPromotionDisplay(res.data.categoryList || []);
+                const pageCount = Math.max(1, Math.ceil(channelList.length / 6));
+                const catalogPages = Array.from({ length: pageCount }, (_, i) => i);
                 that.setData({
                     floorGoods: categoryList,
-                    promotionGoods: promotionGoods,
                     banner: res.data.banner,
-                    channel: res.data.channel,
+                    channel: channelList,
                     notice: res.data.notice,
+                    catalogPageCount: pageCount,
+                    catalogPages: catalogPages,
+                    currentCatalogPage: 0,
                     loading: 1,
                     hasError: false,
                     errorMessage: ''
                 });
+                if (that.hasPromotionGoods(categoryList)) {
+                    that.startPromotionTicker();
+                } else {
+                    that.stopPromotionTicker();
+                }
                 let cartGoodsCount = '';
                 if (res.data.cartCount == 0) {
                     wx.removeTabBarBadge({
@@ -254,6 +311,12 @@ Page({
             util.showErrorToast(that.data.errorMessage);
         });
     },
+    onCatalogSwiperChange: function (e) {
+        const current = Number(e && e.detail ? e.detail.current : 0);
+        this.setData({
+            currentCatalogPage: Number.isNaN(current) ? 0 : current
+        });
+    },
 
     onShow: function () {
         this.getIndexData();
@@ -273,9 +336,12 @@ Page({
         });
         wx.removeStorageSync('categoryId');
     },
+    onUnload: function () {
+        this.stopPromotionTicker();
+    },
     getChannelShowInfo: function (e) {
         let that = this;
-        util.request(api.ShowSettings, {}, 'GET', { page: that }).then(function (res) {
+        util.request(api.ShowSettings, {}, 'GET', { page: that, timeout: 5000, retry: 0 }).then(function (res) {
             if (res.errno === 0) {
                 let show_channel = res.data.channel;
                 let show_banner = res.data.banner;
