@@ -4,6 +4,15 @@ const store = require('./store/index.js');
 const session = require('./utils/session.js');
 const debugLog = require('./utils/debug-log.js');
 
+function extractInviteCode(options) {
+  const launchOptions = options || {};
+  const query = launchOptions.query || {};
+  const extData = (launchOptions.referrerInfo && launchOptions.referrerInfo.extraData) || {};
+  const fromQuery = session.normalizeInviteCode(query.invite_code || query.inviteCode || '');
+  const fromExt = session.normalizeInviteCode(extData.invite_code || extData.inviteCode || '');
+  return fromQuery || fromExt || '';
+}
+
 // 是否启用新的全局状态管理（store）
 function useStore() {
   return !api.features || api.features.newStore !== false;
@@ -56,8 +65,10 @@ App({
     // 登录：先 wx.login 拿到 code，再把 code 发给后端换 token/userInfo
     wx.login({
       success: (res) => {
+        const pendingInviteCode = session.getPendingInviteCode();
         util.request(api.AuthLoginByWeixin, {
-          code: res.code
+          code: res.code,
+          invite_code: pendingInviteCode
         }, 'POST', { skipAuthRefresh: true, timeout: 5000 }).then((res) => {
           if (res.errno === 0) {
             // 保存 session（token + 用户信息）
@@ -68,6 +79,7 @@ App({
             // 保留一份到 globalData，方便旧代码直接 getApp().globalData 读取
             this.globalData.userInfo = res.data.userInfo;
             this.globalData.token = res.data.token;
+            session.clearPendingInviteCode();
           }
         }).catch(function () {
           // Keep app boot stable even if login API is temporarily unavailable.
@@ -129,6 +141,12 @@ App({
         },
         user: cachedUser
       });
+    }
+  },
+  onShow: function (options) {
+    const inviteCode = extractInviteCode(options || {});
+    if (inviteCode) {
+      session.setPendingInviteCode(inviteCode);
     }
   },
   onError: function (err) {

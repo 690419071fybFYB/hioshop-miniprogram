@@ -120,6 +120,9 @@ function applyApiRoot(nextRoot) {
 
   // 首页
   api.IndexUrl = apiRootUrl + 'index/appInfo';
+  api.AdMessageList = apiRootUrl + 'ad/messages';
+  api.AdUnreadCount = apiRootUrl + 'ad/unreadCount';
+  api.AdReadAll = apiRootUrl + 'ad/readAll';
 
   // 分类
   api.CatalogList = apiRootUrl + 'catalog/index';
@@ -185,6 +188,10 @@ function applyApiRoot(nextRoot) {
   // 上传与分享
   api.UploadAvatar = apiRootUrl + 'upload/uploadAvatar';
   api.GetBase64 = apiRootUrl + 'qrcode/getBase64';
+
+  // 拉新邀请
+  api.InviteMySummary = apiRootUrl + 'invite/mySummary';
+  api.InviteMyRecords = apiRootUrl + 'invite/myRecords';
 
   return api.ApiRoot;
 }

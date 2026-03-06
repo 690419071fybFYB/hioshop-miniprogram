@@ -2,6 +2,7 @@ const util = require('../../utils/util.js');
 const api = require('../../config/api.js');
 const user = require('../../services/user.js');
 const store = require('../../store/index.js');
+const DEFAULT_POPUP_AUTO_CLOSE_SECONDS = 5;
 
 //获取应用实例
 const app = getApp()
@@ -30,8 +31,148 @@ Page({
         catalogPageCount: 1,
         catalogPages: [0],
         currentCatalogPage: 0,
+        popupAd: null,
+        showPopupAd: false,
+        popupDontShowToday: false,
         uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
         vantEnabled: !!api.features.vantEnabled
+    },
+    getTodayDateKey() {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    },
+    getPopupDismissKey(adId) {
+        return `home_popup_dismiss:${this.getTodayDateKey()}:${Number(adId || 0)}`;
+    },
+    isPopupDismissedToday(adId) {
+        const key = this.getPopupDismissKey(adId);
+        return String(wx.getStorageSync(key) || '') === '1';
+    },
+    markPopupDismissedToday(adId) {
+        const key = this.getPopupDismissKey(adId);
+        wx.setStorageSync(key, '1');
+    },
+    getPopupAutoCloseSeconds(ad) {
+        const rawSeconds = Number(ad && ad.auto_close_seconds || 0);
+        if (Number.isFinite(rawSeconds) && rawSeconds > 0) {
+            return Math.max(1, Math.floor(rawSeconds));
+        }
+        return DEFAULT_POPUP_AUTO_CLOSE_SECONDS;
+    },
+    clearPopupAutoCloseTimer() {
+        if (this.popupAutoCloseTimer) {
+            clearTimeout(this.popupAutoCloseTimer);
+            this.popupAutoCloseTimer = null;
+        }
+    },
+    startPopupAutoCloseTimer(seconds) {
+        const safeSeconds = Number(seconds || 0);
+        if (!Number.isFinite(safeSeconds) || safeSeconds <= 0) {
+            return;
+        }
+        this.clearPopupAutoCloseTimer();
+        this.popupAutoCloseTimer = setTimeout(() => {
+            this.popupAutoCloseTimer = null;
+            if (!this.data.showPopupAd) {
+                return;
+            }
+            this.closePopupAd();
+        }, safeSeconds * 1000);
+    },
+    applyPopupAdVisibility(popupAd) {
+        this.clearPopupAutoCloseTimer();
+        const ad = popupAd && Number(popupAd.id || 0) > 0 ? popupAd : null;
+        if (!ad) {
+            this.setData({
+                popupAd: null,
+                showPopupAd: false,
+                popupDontShowToday: false
+            });
+            return;
+        }
+        const dismissed = this.isPopupDismissedToday(ad.id);
+        this.setData({
+            popupAd: ad,
+            showPopupAd: !dismissed,
+            popupDontShowToday: false
+        });
+        if (!dismissed) {
+            this.startPopupAutoCloseTimer(this.getPopupAutoCloseSeconds(ad));
+        }
+    },
+    onPopupDontShowChange(e) {
+        const values = (e && e.detail && e.detail.value) || [];
+        this.setData({
+            popupDontShowToday: Array.isArray(values) && values.includes('1')
+        });
+    },
+    savePopupDismissState() {
+        const adId = Number(this.data.popupAd && this.data.popupAd.id || 0);
+        if (adId > 0 && this.data.popupDontShowToday) {
+            this.markPopupDismissedToday(adId);
+        }
+    },
+    closePopupAd() {
+        this.clearPopupAutoCloseTimer();
+        if (!this.data.showPopupAd) {
+            return;
+        }
+        this.savePopupDismissState();
+        this.setData({
+            showPopupAd: false
+        });
+    },
+    stopPopupTap() {
+        // Block popup card taps from closing the overlay.
+    },
+    navigateByAd(ad) {
+        if (!ad) {
+            return;
+        }
+        const linkType = Number(ad.link_type || 0);
+        if (linkType === 0) {
+            const goodsId = Number(ad.goods_id || 0);
+            if (goodsId <= 0) {
+                util.showErrorToast('广告跳转配置错误');
+                return;
+            }
+            wx.navigateTo({
+                url: `/pages/goods/goods?id=${goodsId}`
+            });
+            return;
+        }
+        const link = String(ad.link || '').trim();
+        if (!/^\/pages\/[a-zA-Z0-9_/-]+(?:\?[^#\s]*)?$/.test(link)) {
+            util.showErrorToast('广告链接无效');
+            return;
+        }
+        const tabPages = [
+            '/pages/index/index',
+            '/pages/category/index',
+            '/pages/cart/cart',
+            '/pages/ucenter/index/index'
+        ];
+        const purePath = link.split('?')[0];
+        if (tabPages.includes(purePath)) {
+            wx.switchTab({ url: purePath });
+            return;
+        }
+        wx.navigateTo({ url: link });
+    },
+    handlePopupAdJump() {
+        const ad = this.data.popupAd;
+        if (!ad) {
+            return;
+        }
+        this.clearPopupAutoCloseTimer();
+        this.savePopupDismissState();
+        this.setData({
+            showPopupAd: false
+        });
+        this.navigateByAd(ad);
     },
     formatPromotionCountdown(endAt) {
         const endTs = Number(endAt || 0);
@@ -230,6 +371,7 @@ Page({
         this.setData({
             autoplay: false
         });
+        this.clearPopupAutoCloseTimer();
         this.stopPromotionTicker();
     },
     goSearch: function () {
@@ -300,13 +442,16 @@ Page({
                 store.patch({
                     cartCount: Number(res.data.cartCount || 0)
                 });
+                that.applyPopupAdVisibility(res.data.popupAd || null);
             }
         }).catch(function () {
             // Avoid permanent loading spinner when request fails.
+            that.clearPopupAutoCloseTimer();
             that.setData({
                 loading: 1,
                 hasError: true,
-                errorMessage: '首页数据加载失败，请检查接口或网络'
+                errorMessage: '首页数据加载失败，请检查接口或网络',
+                showPopupAd: false
             });
             util.showErrorToast(that.data.errorMessage);
         });
@@ -337,6 +482,7 @@ Page({
         wx.removeStorageSync('categoryId');
     },
     onUnload: function () {
+        this.clearPopupAutoCloseTimer();
         this.stopPromotionTicker();
     },
     getChannelShowInfo: function (e) {

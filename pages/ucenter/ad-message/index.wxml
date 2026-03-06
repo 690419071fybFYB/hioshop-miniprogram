@@ -1,0 +1,27 @@
+<view class="container">
+  <view class="loading" wx:if="{{loading && list.length === 0}}">加载中...</view>
+
+  <view class="empty" wx:if="{{empty && !loading}}">
+    <view class="empty-text">暂无广告消息</view>
+  </view>
+
+  <view class="list">
+    <view class="card" wx:for="{{list}}" wx:key="id" data-index="{{index}}" bindtap="onTapMessage">
+      <image class="poster" src="{{item.image_url}}" mode="aspectFill"></image>
+      <view class="content">
+        <view class="title">{{item.title || '广告消息'}}</view>
+        <view class="meta">
+          <text class="status {{item.statusClass}}">{{item.statusText}}</text>
+          <text class="time">{{item.startTimeText}}</text>
+        </view>
+        <view class="time-range" wx:if="{{item.endTimeText}}">有效至：{{item.endTimeText}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="footer" wx:if="{{list.length > 0}}">
+    <text wx:if="{{loading}}">加载中...</text>
+    <text wx:elif="{{finished}}">没有更多了</text>
+    <text wx:else>上拉加载更多</text>
+  </view>
+</view>

@@ -1,0 +1,91 @@
+page {
+  background: #f7f8fa;
+}
+
+.container {
+  min-height: 100%;
+  padding: 20rpx 24rpx 30rpx;
+  box-sizing: border-box;
+}
+
+.loading,
+.footer {
+  text-align: center;
+  color: #888;
+  font-size: 24rpx;
+  padding: 20rpx 0;
+}
+
+.empty {
+  padding: 180rpx 0;
+  text-align: center;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.06);
+}
+
+.poster {
+  width: 100%;
+  height: 300rpx;
+  display: block;
+}
+
+.content {
+  padding: 16rpx 20rpx 20rpx;
+}
+
+.title {
+  font-size: 30rpx;
+  color: #111;
+  line-height: 40rpx;
+  font-weight: 600;
+}
+
+.meta {
+  margin-top: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+}
+
+.status.active {
+  color: #0f8a5f;
+  background: #e7fbf2;
+}
+
+.status.expired {
+  color: #8f8f8f;
+  background: #f0f1f3;
+}
+
+.time {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.time-range {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #666;
+}

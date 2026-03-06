@@ -14,16 +14,19 @@ function loginByWeixin() {
             code = res.code;
             return util.getUserInfo();
         }).then((userInfo) => {
+            const inviteCode = session.getPendingInviteCode();
             //登录远程服务器
             util.request(api.AuthLoginByWeixin, {
                 code: code,
-                userInfo: userInfo
+                userInfo: userInfo,
+                invite_code: inviteCode
             }, 'POST', { skipAuthRefresh: true }).then(res => {
                 if (res.errno === 0) {
                     session.saveSession({
                         token: res.data.token,
                         userInfo: res.data.userInfo
                     });
+                    session.clearPendingInviteCode();
                     resolve(res);
                 } else {
                     reject(res);

@@ -16,6 +16,7 @@ Page({
     is_new: 0,
     root: api.ApiRoot,
     showLoginProfileSheet: false,
+    adUnreadCount: 0,
     uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
     vantEnabled: !!api.features.vantEnabled
   },
@@ -89,6 +90,18 @@ Page({
       url: '/pages/coupon-center/index'
     });
   },
+  toInvite: function () {
+    if (!this.ensureProfileReady()) return;
+    wx.navigateTo({
+      url: '/pages/ucenter/invite/index'
+    });
+  },
+  toAdMessage: function () {
+    if (!this.ensureProfileReady()) return;
+    wx.navigateTo({
+      url: '/pages/ucenter/ad-message/index'
+    });
+  },
   handleLoginTap() {
     const token = wx.getStorageSync('token') || '';
     if (!token) {
@@ -122,8 +135,10 @@ Page({
   },
   postLogin(code, done) {
     let that = this;
+    const inviteCode = session.getPendingInviteCode();
     util.request(api.AuthLoginByWeixin, {
-      code: code
+      code: code,
+      invite_code: inviteCode
     }, 'POST', { skipAuthRefresh: true }).then(function (res) {
       if (res.errno === 0) {
         let userInfo = res.data.userInfo;
@@ -138,6 +153,7 @@ Page({
         });
         app.globalData.userInfo = userInfo;
         app.globalData.token = res.data.token;
+        session.clearPendingInviteCode();
         if (typeof done === 'function') done(true);
       } else {
         util.showErrorToast(res.errmsg || '登录失败，请稍后重试');
@@ -167,6 +183,7 @@ Page({
   onShow: function () {
     this.ensureLoginAndLoadProfile();
     this.getOrderInfo();
+    this.getAdUnreadCount();
     wx.removeStorageSync('categoryId');
   },
   getSettingsDetail() {
@@ -184,7 +201,8 @@ Page({
         session.setProfileCompleted(false);
         that.setData({
           hasUserInfo: false,
-          showLoginProfileSheet: false
+          showLoginProfileSheet: false,
+          adUnreadCount: 0
         });
       }
     }).catch(function (err) {
@@ -193,7 +211,8 @@ Page({
         session.setProfileCompleted(false);
         that.setData({
           hasUserInfo: false,
-          showLoginProfileSheet: false
+          showLoginProfileSheet: false,
+          adUnreadCount: 0
         });
         return;
       }
@@ -208,6 +227,7 @@ Page({
       showLoginProfileSheet: !completed
     });
     this.getOrderInfo();
+    this.getAdUnreadCount();
   },
   onProfileSheetCancel() {
     this.setData({
@@ -239,6 +259,31 @@ Page({
     }).catch(function () {
       that.setData({
         status: {}
+      });
+    });
+  },
+  getAdUnreadCount() {
+    const token = wx.getStorageSync('token') || '';
+    if (!token || !session.getProfileCompleted()) {
+      this.setData({
+        adUnreadCount: 0
+      });
+      return;
+    }
+    let that = this;
+    util.request(api.AdUnreadCount, {}, 'GET', { page: that, silent401: true }).then(function (res) {
+      if (res.errno === 0) {
+        that.setData({
+          adUnreadCount: Number(res.data && res.data.count || 0)
+        });
+        return;
+      }
+      that.setData({
+        adUnreadCount: 0
+      });
+    }).catch(function () {
+      that.setData({
+        adUnreadCount: 0
       });
     });
   },

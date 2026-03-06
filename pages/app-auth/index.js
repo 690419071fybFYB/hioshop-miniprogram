@@ -83,8 +83,10 @@ Page({
   },
   postLogin(code) {
     let that = this;
+    const inviteCode = session.getPendingInviteCode();
     util.request(api.AuthLoginByWeixin, {
-      code: code
+      code: code,
+      invite_code: inviteCode
     }, 'POST', { skipAuthRefresh: true }).then(function (res) {
       if (res.errno === 0) {
         session.saveSession({
@@ -93,6 +95,7 @@ Page({
         });
         app.globalData.userInfo = res.data.userInfo;
         app.globalData.token = res.data.token;
+        session.clearPendingInviteCode();
         let is_new = res.data.is_new; //服务器返回的数据；
         if (is_new == 0) {
           util.showSuccessToast('登录成功');

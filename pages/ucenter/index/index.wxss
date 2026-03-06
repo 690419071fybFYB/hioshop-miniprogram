@@ -288,6 +288,20 @@ page {
     color: #333;
 }
 
+.li-wrap .list .list-l .message-badge {
+    margin-left: 12rpx;
+    min-width: 34rpx;
+    padding: 0 8rpx;
+    height: 34rpx;
+    line-height: 34rpx;
+    border-radius: 17rpx;
+    background: #ff3456;
+    color: #fff;
+    font-size: 20rpx;
+    text-align: center;
+    box-sizing: border-box;
+}
+
 .li-wrap .list .arrow {
     width: 10rpx;
     height: 10rpx;
