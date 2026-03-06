@@ -1,0 +1,155 @@
+page {
+  background: #f6f7fb;
+}
+
+.invite-page {
+  padding: 24rpx;
+}
+
+.summary-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.04);
+}
+
+.title {
+  font-size: 38rpx;
+  font-weight: 700;
+  color: #1f2430;
+}
+
+.desc {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #7b8090;
+}
+
+.code-row {
+  margin-top: 20rpx;
+  padding: 18rpx 20rpx;
+  background: #f9f2f5;
+  border-radius: 14rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.label {
+  font-size: 24rpx;
+  color: #6d7282;
+}
+
+.code {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #df3e64;
+}
+
+.share-btn {
+  margin-top: 20rpx;
+  height: 84rpx;
+  line-height: 84rpx;
+  border-radius: 42rpx;
+  color: #fff;
+  font-size: 30rpx;
+  background: linear-gradient(135deg, #ff5e82, #de3d63);
+}
+
+.share-btn::after {
+  border: none;
+}
+
+.tips {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #8f95a6;
+}
+
+.stat-grid {
+  margin-top: 20rpx;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16rpx;
+}
+
+.stat-item {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 18rpx;
+  text-align: center;
+}
+
+.num {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1f2430;
+}
+
+.text {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #8f95a6;
+}
+
+.record-card {
+  margin-top: 20rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+}
+
+.record-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1f2430;
+  margin-bottom: 8rpx;
+}
+
+.record-item {
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid #f0f2f8;
+}
+
+.row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.name {
+  font-size: 28rpx;
+  color: #242a37;
+  font-weight: 500;
+}
+
+.status {
+  font-size: 22rpx;
+  color: #df3e64;
+}
+
+.row-sub {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #8b90a0;
+}
+
+.row-fail {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #e24343;
+}
+
+.load-more {
+  margin-top: 20rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 36rpx;
+  font-size: 26rpx;
+  color: #5a6071;
+  background: #f3f5fb;
+}
+
+.load-more::after {
+  border: none;
+}

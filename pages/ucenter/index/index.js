@@ -89,6 +89,12 @@ Page({
       url: '/pages/coupon-center/index'
     });
   },
+  toInvite: function () {
+    if (!this.ensureProfileReady()) return;
+    wx.navigateTo({
+      url: '/pages/ucenter/invite/index'
+    });
+  },
   handleLoginTap() {
     const token = wx.getStorageSync('token') || '';
     if (!token) {
@@ -122,8 +128,10 @@ Page({
   },
   postLogin(code, done) {
     let that = this;
+    const inviteCode = session.getPendingInviteCode();
     util.request(api.AuthLoginByWeixin, {
-      code: code
+      code: code,
+      invite_code: inviteCode
     }, 'POST', { skipAuthRefresh: true }).then(function (res) {
       if (res.errno === 0) {
         let userInfo = res.data.userInfo;
@@ -138,6 +146,7 @@ Page({
         });
         app.globalData.userInfo = userInfo;
         app.globalData.token = res.data.token;
+        session.clearPendingInviteCode();
         if (typeof done === 'function') done(true);
       } else {
         util.showErrorToast(res.errmsg || '登录失败，请稍后重试');

@@ -1,0 +1,50 @@
+<view class="invite-page">
+  <view class="summary-card">
+    <view class="title">邀请有礼</view>
+    <view class="desc">邀请新用户首次登录，即可获得优惠券奖励</view>
+    <view class="code-row">
+      <view class="label">我的邀请码</view>
+      <view class="code">{{summary.my_invite_code || '--'}}</view>
+    </view>
+    <button class="share-btn" open-type="share">立即邀请</button>
+    <view class="tips">每日最多奖励 {{summary.daily_limit}} 次</view>
+  </view>
+
+  <view class="stat-grid">
+    <view class="stat-item">
+      <view class="num">{{summary.today_invite_count}}</view>
+      <view class="text">今日邀请</view>
+    </view>
+    <view class="stat-item">
+      <view class="num">{{summary.today_reward_count}}</view>
+      <view class="text">今日奖励</view>
+    </view>
+    <view class="stat-item">
+      <view class="num">{{summary.total_invite_count}}</view>
+      <view class="text">累计邀请</view>
+    </view>
+    <view class="stat-item">
+      <view class="num">{{summary.total_reward_count}}</view>
+      <view class="text">累计奖励</view>
+    </view>
+  </view>
+
+  <view class="record-card">
+    <view class="record-title">邀请记录</view>
+    <block wx:if="{{records.length > 0}}">
+      <view class="record-item" wx:for="{{records}}" wx:key="id">
+        <view class="row-top">
+          <view class="name">{{item.invitee_nickname || '新用户'}}</view>
+          <view class="status">{{item.reward_status_text}}</view>
+        </view>
+        <view class="row-sub">{{item.invitee_mobile_masked || '未提供手机号'}}</view>
+        <view class="row-sub">{{item.bind_time_text}}</view>
+        <view class="row-fail" wx:if="{{item.fail_reason}}">{{item.fail_reason}}</view>
+      </view>
+      <button wx:if="{{hasMore}}" class="load-more" bindtap="loadMore" loading="{{loading}}">
+        加载更多
+      </button>
+    </block>
+    <van-empty wx:else description="还没有邀请记录"></van-empty>
+  </view>
+</view>

@@ -1,6 +1,7 @@
 const store = require('../store/index.js');
 const api = require('../config/api.js');
 const PROFILE_COMPLETED_KEY = 'profileCompleted';
+const PENDING_INVITE_CODE_KEY = 'pendingInviteCode';
 const PLACEHOLDER_NICKNAME = '微信用户';
 
 function normalizeNickname(nickname) {
@@ -68,11 +69,33 @@ function clearSession() {
   }
 }
 
+function normalizeInviteCode(raw) {
+  return String(raw || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 24);
+}
+
+function setPendingInviteCode(code) {
+  const normalized = normalizeInviteCode(code);
+  if (!normalized) return;
+  wx.setStorageSync(PENDING_INVITE_CODE_KEY, normalized);
+}
+
+function getPendingInviteCode() {
+  return normalizeInviteCode(wx.getStorageSync(PENDING_INVITE_CODE_KEY) || '');
+}
+
+function clearPendingInviteCode() {
+  wx.removeStorageSync(PENDING_INVITE_CODE_KEY);
+}
+
 module.exports = {
   saveSession,
   clearSession,
   isProfileComplete,
   syncProfileCompleted,
   setProfileCompleted,
-  getProfileCompleted
+  getProfileCompleted,
+  setPendingInviteCode,
+  getPendingInviteCode,
+  clearPendingInviteCode,
+  normalizeInviteCode
 };

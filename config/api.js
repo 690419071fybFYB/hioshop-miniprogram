@@ -186,6 +186,10 @@ function applyApiRoot(nextRoot) {
   api.UploadAvatar = apiRootUrl + 'upload/uploadAvatar';
   api.GetBase64 = apiRootUrl + 'qrcode/getBase64';
 
+  // 拉新邀请
+  api.InviteMySummary = apiRootUrl + 'invite/mySummary';
+  api.InviteMyRecords = apiRootUrl + 'invite/myRecords';
+
   return api.ApiRoot;
 }
 

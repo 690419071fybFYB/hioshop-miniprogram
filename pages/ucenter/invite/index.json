@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "邀请有礼",
+  "usingComponents": {
+    "van-empty": "@vant/weapp/empty/index"
+  }
+}

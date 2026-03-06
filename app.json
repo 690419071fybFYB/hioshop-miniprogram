@@ -15,6 +15,7 @@
         "pages/ucenter/address/index",
         "pages/ucenter/address-detail/index",
         "pages/ucenter/index/index",
+        "pages/ucenter/invite/index",
         "pages/ucenter/settings/index",
         "pages/ucenter/order-list/index",
         "pages/ucenter/goods-list/index",
