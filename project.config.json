@@ -34,6 +34,7 @@
     "disableSWC": true
   },
   "compileType": "miniprogram",
+  "miniprogramRoot": "./",
   "libVersion": "2.9.4",
   "appid": "wxbfdcb48d65950fc5",
   "projectname": "%e6%b5%b7%e9%a3%8e%e5%b0%8f%e5%ba%97",
