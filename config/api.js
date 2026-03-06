@@ -120,6 +120,9 @@ function applyApiRoot(nextRoot) {
 
   // 首页
   api.IndexUrl = apiRootUrl + 'index/appInfo';
+  api.AdMessageList = apiRootUrl + 'ad/messages';
+  api.AdUnreadCount = apiRootUrl + 'ad/unreadCount';
+  api.AdReadAll = apiRootUrl + 'ad/readAll';
 
   // 分类
   api.CatalogList = apiRootUrl + 'catalog/index';

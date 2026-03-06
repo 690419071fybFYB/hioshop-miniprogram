@@ -1,4 +1,19 @@
 <view class="container {{uiV2 ? 'ui-v2' : ''}}" wx:if="{{loading == 1}}">
+    <view class="popup-ad-mask" wx:if="{{showPopupAd}}" bindtap="closePopupAd"></view>
+    <view class="popup-ad-wrap" wx:if="{{showPopupAd}}" bindtap="stopPopupTap">
+        <view class="popup-ad-card">
+            <image class="popup-ad-image" src="{{popupAd.image_url}}" mode="widthFix" bindtap="handlePopupAdJump"></image>
+            <view class="popup-ad-title" wx:if="{{popupAd.title}}">{{popupAd.title}}</view>
+            <view class="popup-ad-actions">
+                <checkbox-group bindchange="onPopupDontShowChange">
+                    <label class="popup-checkbox-label">
+                        <checkbox value="1" checked="{{popupDontShowToday}}" color="#ff3456" />今日不再出现
+                    </label>
+                </checkbox-group>
+                <button class="popup-close-btn" size="mini" plain bindtap="closePopupAd">关闭</button>
+            </view>
+        </view>
+    </view>
     <view class="ui-error-card" wx:if="{{hasError && uiV2}}">
         <text class="ui-error-text">{{errorMessage}}</text>
         <van-button size="small" type="danger" plain bindtap="retryLoad">重试</van-button>

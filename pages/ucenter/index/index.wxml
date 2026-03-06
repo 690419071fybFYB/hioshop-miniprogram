@@ -113,6 +113,16 @@
             </view>
             <view class="arrow"></view>
         </view>
+        <view class="list" bindtap="toAdMessage">
+            <view class="list-l">
+                <view class="icon">
+                    <image lazy-load="true" class="img" src="https://fybshopbk-1369967353.cos.ap-shanghai.myqcloud.com/images/icon/icon-service-r.png"></image>
+                </view>
+                <view class="text">广告消息</view>
+                <view class="message-badge" wx:if="{{adUnreadCount > 0}}">{{adUnreadCount > 99 ? '99+' : adUnreadCount}}</view>
+            </view>
+            <view class="arrow"></view>
+        </view>
         <button class="contact-btn" session-from='{"nickName":"{{userInfo.nickname}}","avatarUrl":"{{userInfo.avatar}}"}' open-type="contact">
             <view class="list-l">
                 <view class="icon">
@@ -149,6 +159,7 @@
         <van-cell title="我的优惠券" is-link bindtap="toCoupon" />
         <van-cell title="领券中心" is-link bindtap="toCouponCenter" />
         <van-cell title="邀请有礼" is-link bindtap="toInvite" />
+        <van-cell title="广告消息" value="{{adUnreadCount > 0 ? (adUnreadCount > 99 ? '99+' : adUnreadCount) : ''}}" is-link bindtap="toAdMessage" />
         <button class="contact-btn-v2" session-from='{"nickName":"{{userInfo.nickname}}","avatarUrl":"{{userInfo.avatar}}"}' open-type="contact">联系客服</button>
         <van-cell title="关于我们" is-link bindtap="toAbout" />
         <van-cell title="网络诊断" is-link bindtap="toDebugNetwork" />
