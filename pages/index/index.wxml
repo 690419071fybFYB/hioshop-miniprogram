@@ -3,7 +3,7 @@
     <view class="popup-ad-wrap" wx:if="{{showPopupAd}}" bindtap="stopPopupTap">
         <view class="popup-ad-card">
             <view class="popup-ad-media">
-                <image class="popup-ad-image" src="{{popupAd.image_url}}" mode="widthFix" bindtap="handlePopupAdJump"></image>
+                <image class="popup-ad-image" src="{{popupAd.image_url}}" mode="aspectFill" bindtap="handlePopupAdJump"></image>
                 <view class="popup-title-badge" wx:if="{{popupAd.title}}">{{popupAd.title}}</view>
                 <view class="popup-close-fab" catchtap="closePopupAd">
                     <text class="popup-close-icon">×</text>
@@ -71,10 +71,10 @@
         <swiper class="banner" indicator-dots="true" autoplay="{{autoplay}}" interval="3000" duration="1000"   >
             <swiper-item wx:for="{{banner}}" wx:key="id">
                 <navigator wx:if="{{item.link_type == 0}}" url="/pages/goods/goods?id={{item.goods_id}}">
-                    <image lazy-load="true" src="{{item.image_url}}" background-size="cover"></image>
+                    <image lazy-load="true" src="{{item.image_url}}" mode="aspectFill" background-size="cover"></image>
                 </navigator>
                 <navigator wx:elif="{{item.link_type == 1}}" url="{{item.link}}">
-                    <image lazy-load="true" src="{{item.image_url}}" background-size="cover"></image>
+                    <image lazy-load="true" src="{{item.image_url}}" mode="aspectFill" background-size="cover"></image>
                 </navigator>
             </swiper-item>
         </swiper>
