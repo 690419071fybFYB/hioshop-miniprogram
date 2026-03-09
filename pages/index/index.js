@@ -55,6 +55,14 @@ Page({
         const key = this.getPopupDismissKey(adId);
         wx.setStorageSync(key, '1');
     },
+    isHomePopupShownInSession() {
+        return !!(app && app.globalData && app.globalData.homePopupSessionShown);
+    },
+    markHomePopupShownInSession() {
+        if (app && app.globalData) {
+            app.globalData.homePopupSessionShown = true;
+        }
+    },
     getPopupAutoCloseSeconds(ad) {
         const rawSeconds = Number(ad && ad.auto_close_seconds || 0);
         if (Number.isFinite(rawSeconds) && rawSeconds > 0) {
@@ -94,12 +102,17 @@ Page({
             return;
         }
         const dismissed = this.isPopupDismissedToday(ad.id);
+        const shownInSession = this.isHomePopupShownInSession();
+        const shouldShow = !dismissed && !shownInSession;
+        if (shouldShow) {
+            this.markHomePopupShownInSession();
+        }
         this.setData({
             popupAd: ad,
-            showPopupAd: !dismissed,
+            showPopupAd: shouldShow,
             popupDontShowToday: false
         });
-        if (!dismissed) {
+        if (shouldShow) {
             this.startPopupAutoCloseTimer(this.getPopupAutoCloseSeconds(ad));
         }
     },

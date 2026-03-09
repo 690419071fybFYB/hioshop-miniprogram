@@ -26,6 +26,8 @@ App({
     // 小程序冷启动（首次启动）时执行一次：做环境初始化、登录、全局状态写入等
     const launchOptions = arguments[0] || {};
     const query = launchOptions.query || {};
+    // 每次冷启动重置首页广告弹窗会话状态（同一次运行内只弹一次）
+    this.globalData.homePopupSessionShown = false;
     // 某些入口（例如从其他小程序/插件）可能通过 referrerInfo.extraData 传参
     const extData = (launchOptions.referrerInfo && launchOptions.referrerInfo.extraData) || {};
 
@@ -185,5 +187,7 @@ App({
     },
     // 登录 token（后端颁发，用于鉴权）
     token: '',
+    // 首页广告弹窗在本次冷启动会话中是否已展示过
+    homePopupSessionShown: false
   }
 })
