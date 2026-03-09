@@ -89,7 +89,7 @@
         <view class="list" bindtap="toCoupon">
             <view class="list-l">
                 <view class="icon">
-                    <image lazy-load="true" class="img" src="https://fybshopbk-1369967353.cos.ap-shanghai.myqcloud.com/images/icon/icon-service-r.png"></image>
+                    <image lazy-load="true" class="img" src="/images/icon/icon-coupon-local.png"></image>
                 </view>
                 <view class="text">我的优惠券</view>
             </view>
@@ -107,7 +107,7 @@
         <view class="list" bindtap="toInvite">
             <view class="list-l">
                 <view class="icon">
-                    <image lazy-load="true" class="img" src="https://fybshopbk-1369967353.cos.ap-shanghai.myqcloud.com/images/icon/icon-service-r.png"></image>
+                    <image lazy-load="true" class="img" src="/images/icon/icon-invite-local.png"></image>
                 </view>
                 <view class="text">邀请有礼</view>
             </view>
@@ -116,7 +116,7 @@
         <view class="list" bindtap="toAdMessage">
             <view class="list-l">
                 <view class="icon">
-                    <image lazy-load="true" class="img" src="https://fybshopbk-1369967353.cos.ap-shanghai.myqcloud.com/images/icon/icon-service-r.png"></image>
+                    <image lazy-load="true" class="img" src="/images/icon/icon-ad-message-local.png"></image>
                 </view>
                 <view class="text">广告消息</view>
                 <view class="message-badge" wx:if="{{adUnreadCount > 0}}">{{adUnreadCount > 99 ? '99+' : adUnreadCount}}</view>
