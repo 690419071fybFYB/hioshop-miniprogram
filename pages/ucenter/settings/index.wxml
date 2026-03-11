@@ -20,6 +20,7 @@
   </view>
 
   <button class="btn-primary" bindtap="openProfileSheet">完善资料</button>
+  <button wx:if="{{isLoggedIn}}" class="btn-logout" bindtap="handleLogout">退出登录</button>
   <button class="btn-secondary" bindtap="goBack">返回</button>
 
   <login-profile-sheet

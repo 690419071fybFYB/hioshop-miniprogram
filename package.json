@@ -3,7 +3,29 @@
   "version": "1.0.0",
   "private": true,
   "description": "hioshop wechat miniprogram ui upgrade",
+  "scripts": {
+    "lint": "eslint \"**/*.js\"",
+    "test:syntax": "node -c app.js && node -c utils/request/index.js && node -c utils/util.js && node -c services/pay.js && node -c services/user.js",
+    "test:request-smoke": "node ../testing/scripts/miniprogram_request_smoke.js",
+    "test:api-root-guard": "node ../testing/scripts/miniprogram_api_root_guard.js",
+    "test:auth-refresh-race": "node ../testing/scripts/miniprogram_auth_refresh_race.js",
+    "test:checkout-resilience": "node ../testing/scripts/miniprogram_checkout_resilience.js",
+    "test:pay-resilience": "node ../testing/scripts/miniprogram_pay_service_resilience.js",
+    "test:order-list-pagination": "node ../testing/scripts/miniprogram_order_list_pagination.js",
+    "test:coupon-unified": "node ../testing/scripts/miniprogram_coupon_unified_page.js",
+    "test:coupon-redirect": "node ../testing/scripts/miniprogram_coupon_center_redirect.js",
+    "test:security-regression": "npm run test:request-smoke && npm run test:api-root-guard && npm run test:auth-refresh-race",
+    "test:pr-gate": "npm run lint && npm run test:syntax && npm run test:security-regression && npm run test:checkout-resilience && npm run test:pay-resilience && npm run test:order-list-pagination && npm run test:coupon-unified && npm run test:coupon-redirect"
+  },
   "dependencies": {
     "@vant/weapp": "^1.11.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.4",
+    "globals": "^17.4.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

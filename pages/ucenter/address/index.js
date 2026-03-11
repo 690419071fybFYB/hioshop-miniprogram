@@ -1,8 +1,7 @@
 var util = require('../../../utils/util.js');
 var api = require('../../../config/api.js');
-const pay = require('../../../services/pay.js');
-const app = getApp()
-// 触底上拉刷新 TODO 这里要将page传给服务器，作者没写
+const ADDRESS_PICKED_ONCE_KEY = 'checkoutAddressPickedOnce';
+
 Page({
     data: {
         addresses: [],
@@ -16,17 +15,20 @@ Page({
     },
     getAddresses() {
         let that = this;
-        util.request(api.GetAddresses).then(function(res) {
+        return util.request(api.GetAddresses).then(function(res) {
             if (res.errno === 0) {
                 that.setData({
                     addresses: res.data
                 })
             }
+        }).catch(function () {
+            util.showErrorToast('地址列表加载失败');
         });
     },
     selectAddress:function(e) {
         let addressId = e.currentTarget.dataset.addressid
         wx.setStorageSync('addressId', addressId);
+        wx.setStorageSync(ADDRESS_PICKED_ONCE_KEY, 1);
         wx.navigateBack();
     },
     onLoad: function(options) {
@@ -38,10 +40,10 @@ Page({
     onUnload: function() {},
     onShow: function() {
         this.getAddresses();
-        let addressId = wx.getStorageSync('addressId');
-        if (addressId) {
+        let addressId = Number(wx.getStorageSync('addressId') || 0);
+        if (addressId > 0) {
             this.setData({
-                nowAddress: wx.getStorageSync('addressId')
+                nowAddress: addressId
             });
         }
         else {
@@ -57,8 +59,9 @@ Page({
     },
     onPullDownRefresh: function () {
         wx.showNavigationBarLoading()
-        this.getAddresses();
-        wx.hideNavigationBarLoading() //完成停止加载
-        wx.stopPullDownRefresh() //停止下拉刷新
+        this.getAddresses().finally(function () {
+            wx.hideNavigationBarLoading() //完成停止加载
+            wx.stopPullDownRefresh() //停止下拉刷新
+        });
     }
 })

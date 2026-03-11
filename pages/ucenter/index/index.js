@@ -81,13 +81,7 @@ Page({
   toCoupon: function () {
     if (!this.ensureProfileReady()) return;
     wx.navigateTo({
-      url: '/pages/ucenter/coupon/index'
-    });
-  },
-  toCouponCenter: function () {
-    if (!this.ensureProfileReady()) return;
-    wx.navigateTo({
-      url: '/pages/coupon-center/index'
+      url: '/pages/ucenter/coupon/index?skin=promo'
     });
   },
   toInvite: function () {

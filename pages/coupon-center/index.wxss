@@ -1,75 +1,11 @@
 .container {
-  min-height: 100%;
-  padding: 24rpx;
-  box-sizing: border-box;
-  background: linear-gradient(180deg, #fff8fa 0%, #ffffff 34%);
-}
-
-.top-bar {
+  min-height: 100vh;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 20rpx;
+  justify-content: center;
 }
 
-.title {
-  font-size: 34rpx;
-  font-weight: 600;
-}
-
-.link {
-  color: #ff3456;
-  font-size: 26rpx;
-}
-
-.login-tip {
-  margin-bottom: 18rpx;
-  padding: 14rpx 18rpx;
-  border-radius: 12rpx;
-  background: #fff4f6;
-  color: #9f5566;
-  font-size: 22rpx;
-}
-
-.loading, .empty {
-  text-align: center;
-  padding: 48rpx 0;
-  color: #999;
-}
-
-.coupon-card {
-  display: flex;
-  justify-content: space-between;
-  padding: 22rpx;
-  border-radius: 18rpx;
-  background: #fff;
-  margin-bottom: 16rpx;
-  box-shadow: 0 8rpx 20rpx rgba(236, 83, 121, 0.08);
-  border: 1rpx solid #ffe4ea;
-}
-
-.left {
-  width: 74%;
-}
-
-.name {
-  font-size: 30rpx;
-  font-weight: 600;
-  margin-bottom: 10rpx;
-}
-
-.rule {
-  color: #ff3456;
+.redirecting {
   font-size: 28rpx;
-  margin-bottom: 8rpx;
-}
-
-.time {
   color: #999;
-  font-size: 22rpx;
-}
-
-.right {
-  display: flex;
-  align-items: center;
 }

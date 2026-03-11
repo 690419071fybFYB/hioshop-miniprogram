@@ -1,29 +1,66 @@
-<view class="container">
+<view class="container {{skinThemeClass}}">
   <view class="tab-bar">
     <view
       wx:for="{{tabs}}"
       wx:key="key"
-      class="tab-item {{status === item.key ? 'active' : ''}}"
-      data-status="{{item.key}}"
+      class="tab-item {{tab === item.key ? 'active' : ''}}"
+      data-tab="{{item.key}}"
       bindtap="switchTab"
     >
       {{item.label}}
     </view>
   </view>
 
-  <view wx:if="{{loading}}" class="loading">加载中...</view>
-  <view wx:if="{{!loading && list.length === 0}}" class="empty">暂无优惠券</view>
+  <view wx:if="{{tab === 'claimable' && skin === 'promo'}}" class="promo-tip">
+    限时专享券，先领先用
+  </view>
 
-  <view wx:for="{{list}}" wx:key="user_coupon_id" class="coupon-card">
-    <view class="name">{{item.name}}</view>
-    <view class="rule" wx:if="{{item.type === 'full_reduction'}}">
-      满{{item.threshold_amount}}减{{item.reduce_amount}}
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+  <view wx:if="{{!loading && list.length === 0}}" class="empty">{{emptyText}}</view>
+
+  <view class="coupon-list" wx:if="{{!loading && list.length > 0}}">
+    <view wx:for="{{list}}" wx:key="_key" class="coupon-card {{item.cardStateClass}}">
+      <view class="coupon-ticket">
+        <view class="coupon-face">
+          <view class="coupon-amount-row">
+            <text class="coupon-amount-value">{{item.amountText}}</text>
+            <text class="coupon-amount-unit">{{item.amountUnit}}</text>
+          </view>
+          <view class="coupon-threshold">{{item.thresholdText}}</view>
+        </view>
+
+        <view class="coupon-main">
+          <view class="coupon-main-top">
+            <view class="coupon-title">{{item.name}}</view>
+            <view class="coupon-type-tag">{{item.typeTagText}}</view>
+          </view>
+
+          <view class="coupon-rule">{{item.rule_text}}</view>
+
+          <block wx:if="{{tab === 'claimable'}}">
+            <view class="coupon-time">使用期：{{item.timeRangeText}}</view>
+            <view class="coupon-action">
+              <button
+                class="claim-btn {{item.buttonStateClass}}"
+                disabled="{{item.actionDisabled}}"
+                data-id="{{item.id}}"
+                bindtap="receiveCoupon"
+                hover-class="none"
+              >
+                {{item.actionText}}
+              </button>
+            </view>
+          </block>
+
+          <block wx:else>
+            <view class="coupon-time">领取时间：{{item.claim_time_text}}</view>
+            <view class="coupon-time">{{item.secondaryTimeLabel}}：{{item.secondaryTimeText}}</view>
+            <view class="coupon-action">
+              <view class="status-badge {{item.statusBadgeClass}}">{{item.statusBadgeText}}</view>
+            </view>
+          </block>
+        </view>
+      </view>
     </view>
-    <view class="rule" wx:else>
-      满{{item.threshold_amount}}打{{item.discount_rate}}折，封顶{{item.discount_max_reduce}}
-    </view>
-    <view class="time">领取：{{item.claim_time_text}}</view>
-    <view class="time">有效期至：{{item.expire_time_text}}</view>
-    <view class="time" wx:if="{{item.used_time_text !== '-' }}">使用：{{item.used_time_text}}</view>
   </view>
 </view>

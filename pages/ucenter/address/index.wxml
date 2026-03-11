@@ -21,8 +21,11 @@
         </view>
     </view>
     <view class="no-info" wx:else>
-        <image src="/images/icon/position-deny.png" class="img"></image>
-        <view class="text">没有地址信息</view>
+        <view class="no-info-card">
+            <image src="/images/icon/position-deny.png" class="img"></image>
+            <view class="text">没有地址信息</view>
+            <view class="tip">先添加一个收货地址，结算时更快捷</view>
+        </view>
     </view>
     <view class="btn-wrap" bindtap="addAddress">
         <view class="btn">新增收货地址</view>

@@ -95,15 +95,6 @@
             </view>
             <view class="arrow"></view>
         </view>
-        <view class="list" bindtap="toCouponCenter">
-            <view class="list-l">
-                <view class="icon">
-                    <image lazy-load="true" class="img" src="https://fybshopbk-1369967353.cos.ap-shanghai.myqcloud.com/images/icon/icon-address-r.png"></image>
-                </view>
-                <view class="text">领券中心</view>
-            </view>
-            <view class="arrow"></view>
-        </view>
         <view class="list" bindtap="toInvite">
             <view class="list-l">
                 <view class="icon">
@@ -157,7 +148,6 @@
         <van-cell title="地址管理" is-link bindtap="toAddressList" />
         <van-cell title="我的足迹" is-link bindtap="toFootprint" />
         <van-cell title="我的优惠券" is-link bindtap="toCoupon" />
-        <van-cell title="领券中心" is-link bindtap="toCouponCenter" />
         <van-cell title="邀请有礼" is-link bindtap="toInvite" />
         <van-cell title="广告消息" value="{{adUnreadCount > 0 ? (adUnreadCount > 99 ? '99+' : adUnreadCount) : ''}}" is-link bindtap="toAdMessage" />
         <button class="contact-btn-v2" session-from='{"nickName":"{{userInfo.nickname}}","avatarUrl":"{{userInfo.avatar}}"}' open-type="contact">联系客服</button>

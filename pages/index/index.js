@@ -328,7 +328,7 @@ Page({
     },
     toCouponCenter: function () {
         wx.navigateTo({
-            url: '/pages/coupon-center/index'
+            url: '/pages/ucenter/coupon/index?tab=claimable&skin=promo'
         });
     },
     receiveCouponFromHome: function (e) {

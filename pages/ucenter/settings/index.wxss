@@ -80,7 +80,8 @@ page {
 }
 
 .btn-primary,
-.btn-secondary {
+.btn-secondary,
+.btn-logout {
   height: 92rpx;
   line-height: 92rpx;
   border-radius: 46rpx;
@@ -103,4 +104,11 @@ page {
   background: #fff;
   color: #7b6a71;
   border: 1rpx solid #ebdde2;
+}
+
+.btn-logout {
+  margin-top: 16rpx;
+  background: #fff;
+  color: #e2496e;
+  border: 1rpx solid #f2c7d3;
 }

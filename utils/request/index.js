@@ -5,7 +5,7 @@ const debugLog = require('../debug-log.js');
 
 const DEFAULT_TIMEOUT = 6000;
 const DEFAULT_RETRY = 1;
-let isRefreshingToken = false;
+let refreshPromise = null;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -62,9 +62,7 @@ function withWxRequest(params) {
   });
 }
 
-async function refreshTokenByWeixin() {
-  if (isRefreshingToken) return false;
-  isRefreshingToken = true;
+async function doRefreshTokenByWeixin() {
   try {
     const loginResult = await new Promise((resolve, reject) => {
       wx.login({
@@ -94,9 +92,17 @@ async function refreshTokenByWeixin() {
     return !!token;
   } catch (e) {
     return false;
-  } finally {
-    isRefreshingToken = false;
   }
+}
+
+function refreshTokenByWeixin() {
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+  refreshPromise = doRefreshTokenByWeixin().finally(() => {
+    refreshPromise = null;
+  });
+  return refreshPromise;
 }
 
 function clearSession() {

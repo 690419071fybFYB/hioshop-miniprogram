@@ -1,18 +1,24 @@
 page {
-    background: #fafafa;
+    background: linear-gradient(180deg, #fff5f7 0%, #f6f7fb 240rpx, #f6f7fb 100%);
     height: 100%;
 }
 
 .container {
     display: flex;
+    flex-direction: column;
     align-items: stretch;
+    min-height: 100vh;
     overflow-x: hidden;
+    padding-bottom: calc(110rpx + env(safe-area-inset-bottom));
+    box-sizing: border-box;
 }
 
 .has-info {
     display: flex;
     flex-direction: column;
     padding: 30rpx;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .has-info .info-item {
@@ -169,23 +175,48 @@ page {
 
 .no-info {
     display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 30rpx;
+}
+
+.no-info-card {
+    width: 100%;
+    max-width: 560rpx;
+    min-height: 320rpx;
+    border-radius: 20rpx;
+    background: #fff;
+    box-shadow: 0 10rpx 24rpx rgba(255, 52, 86, 0.08);
+    border: 1rpx solid #ffe6ec;
+    display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin-top: 300rpx;
+    padding: 36rpx 24rpx;
+    box-sizing: border-box;
 }
 
 .no-info .img {
-    width: 100rpx;
-    height: 100rpx;
-    margin-bottom: 30rpx;
+    width: 108rpx;
+    height: 108rpx;
+    margin-bottom: 24rpx;
 }
 
 .no-info .text {
     font-size: 30rpx;
-    color: #999;
+    color: #5d6777;
     text-align: center;
-    margin-bottom: 30rpx;
+    margin-bottom: 12rpx;
+}
+
+.no-info .tip {
+    font-size: 24rpx;
+    color: #98a2b3;
+    text-align: center;
+    line-height: 34rpx;
 }
 
 .no-info .add-btn {
@@ -219,5 +250,7 @@ page {
     font-size: 28rpx;
     text-align: center;
     height: 110rpx;
-    line-height: 100rpx;
+    line-height: 110rpx;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-sizing: border-box;
 }

@@ -1,8 +1,7 @@
 var util = require('../../../utils/util.js');
 var api = require('../../../config/api.js');
 const pay = require('../../../services/pay.js');
-const app = getApp()
-// 触底上拉刷新 TODO 这里要将page传给服务器，作者没写
+
 Page({
     data: {
         orderList: [],
@@ -13,7 +12,27 @@ Page({
         showType: 9,
         hasOrder: 0,
         showTips: 0,
-        status: {}
+        status: {},
+        loading: false,
+        hasMore: true
+    },
+    getStoredShowType: function () {
+        const stored = Number(wx.getStorageSync('showType'));
+        return Number.isInteger(stored) ? stored : this.data.showType;
+    },
+    resetOrderList: function (showType) {
+        this.setData({
+            showType: showType,
+            orderList: [],
+            allOrderList: [],
+            allPage: 1,
+            allCount: 0,
+            size: 8,
+            hasOrder: 0,
+            showTips: 0,
+            loading: false,
+            hasMore: true
+        });
     },
     toOrderDetails: function(e) {
         let orderId = e.currentTarget.dataset.id;
@@ -26,19 +45,12 @@ Page({
         let orderId = e.currentTarget.dataset.orderid;
         let that = this;
         pay.payOrder(parseInt(orderId)).then(res => {
-            let showType = wx.getStorageSync('showType');
-            that.setData({
-                showType: showType,
-                orderList: [],
-                allOrderList: [],
-                allPage: 1,
-                allCount: 0,
-                size: 8
-            });
+            let showType = that.getStoredShowType();
+            that.resetOrderList(showType);
             that.getOrderList();
             that.getOrderInfo();
         }).catch(res => {
-            util.showErrorToast(res.errmsg);
+            util.showErrorToast((res && res.errmsg) || '支付失败');
         });
     },
     getOrderInfo: function(e) {
@@ -53,27 +65,42 @@ Page({
         });
     },
     getOrderList() {
+        if (this.data.loading || !this.data.hasMore) {
+            return Promise.resolve(false);
+        }
         let that = this;
-        util.request(api.OrderList, {
+        const requestPage = that.data.allPage;
+        that.setData({
+            loading: true
+        });
+        return util.request(api.OrderList, {
             showType: that.data.showType,
             size: that.data.size,
-            page: that.data.allPage,
+            page: requestPage,
         }).then(function(res) {
             if (res.errno === 0) {
-                let count = res.data.count;
+                let count = Number(res.data.count || 0);
+                const incoming = Array.isArray(res.data.data) ? res.data.data : [];
+                const merged = that.data.allOrderList.concat(incoming);
+                const currentPage = Number(res.data.currentPage || requestPage || 1);
+                const totalPages = that.data.size > 0 ? Math.ceil(count / that.data.size) : 0;
+                const hasMore = totalPages > currentPage;
                 that.setData({
                     allCount: count,
-                    allOrderList: that.data.allOrderList.concat(res.data.data),
-                    allPage: res.data.currentPage,
-                    orderList: that.data.allOrderList.concat(res.data.data)
+                    allOrderList: merged,
+                    allPage: currentPage,
+                    orderList: merged,
+                    hasOrder: count === 0 ? 1 : 0,
+                    hasMore: hasMore,
+                    showTips: hasMore ? 0 : (count > 0 ? 1 : 0)
                 });
-                let hasOrderData = that.data.allOrderList.concat(res.data.data);
-                if (count == 0) {
-                    that.setData({
-                        hasOrder: 1
-                    });
-                }
             }
+        }).catch(function () {
+            util.showErrorToast('订单列表加载失败');
+        }).finally(function () {
+            that.setData({
+                loading: false
+            });
         });
     },
     toIndexPage: function(e) {
@@ -83,34 +110,20 @@ Page({
     },
     onLoad: function() {},
     onShow: function() {
-        let showType = wx.getStorageSync('showType');
-        let nowShowType = this.data.showType;
-        let doRefresh = wx.getStorageSync('doRefresh');
-        if (nowShowType != showType || doRefresh == 1) {
-            this.setData({
-                showType: showType,
-                orderList: [],
-                allOrderList: [],
-                allPage: 1,
-                allCount: 0,
-                size: 8
-            });
+        let showType = this.getStoredShowType();
+        let nowShowType = Number(this.data.showType);
+        let doRefresh = Number(wx.getStorageSync('doRefresh') || 0) === 1;
+        if (nowShowType !== showType || doRefresh || this.data.orderList.length === 0) {
+            this.resetOrderList(showType);
             this.getOrderList();
             wx.removeStorageSync('doRefresh');
         }
         this.getOrderInfo();
     },
     switchTab: function(event) {
-        let showType = event.currentTarget.dataset.index;
+        let showType = Number(event.currentTarget.dataset.index);
         wx.setStorageSync('showType', showType);
-        this.setData({
-            showType: showType,
-            orderList: [],
-            allOrderList: [],
-            allPage: 1,
-            allCount: 0,
-            size: 8
-        });
+        this.resetOrderList(showType);
         this.getOrderInfo();
         this.getOrderList();
     },
@@ -135,9 +148,12 @@ Page({
                                 allOrderList: [],
                                 allPage: 1,
                                 allCount: 0,
-                                size: 8
+                                size: 8,
+                                hasMore: true,
+                                showTips: 0
                             });
                             that.getOrderList();
+                            that.getOrderInfo();
                         } else {
                             util.showErrorToast(res.errmsg);
                         }
@@ -148,7 +164,10 @@ Page({
     },
     onReachBottom: function() {
         let that = this;
-        if (that.data.allCount / that.data.size < that.data.allPage) {
+        if (that.data.loading) {
+            return false;
+        }
+        if (!that.data.hasMore) {
             that.setData({
                 showTips: 1
             });

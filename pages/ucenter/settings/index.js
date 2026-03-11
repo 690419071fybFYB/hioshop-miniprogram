@@ -36,6 +36,7 @@ Page({
     mobileDisplay: '未授权',
     avatarUrl: DEFAULT_AVATAR,
     avatarDisplayUrl: DEFAULT_AVATAR,
+    isLoggedIn: false,
     showLoginProfileSheet: false,
     profileForSheet: {
       nickname: '',
@@ -53,8 +54,12 @@ Page({
   },
   hydrateFromStorage() {
     const cachedUserInfo = wx.getStorageSync('userInfo') || {};
+    const token = wx.getStorageSync('token') || '';
     const profile = normalizeProfile(cachedUserInfo);
     this.applyProfileToView(profile);
+    this.setData({
+      isLoggedIn: !!token
+    });
   },
   applyProfileToView(profile) {
     const normalized = normalizeProfile(profile);
@@ -124,5 +129,52 @@ Page({
   },
   goBack() {
     wx.navigateBack();
+  },
+  handleLogout() {
+    if (!this.data.isLoggedIn) {
+      util.showErrorToast('当前未登录');
+      return;
+    }
+    const that = this;
+    wx.showModal({
+      title: '退出登录',
+      content: '确定要退出当前账号吗？',
+      confirmText: '退出',
+      confirmColor: '#ff3456',
+      success(res) {
+        if (!res.confirm) {
+          return;
+        }
+        session.clearSession();
+        session.clearPendingInviteCode();
+        const app = getApp();
+        if (app && app.globalData) {
+          app.globalData.token = '';
+          app.globalData.userInfo = {
+            nickname: '点我登录',
+            username: '点击登录',
+            avatar: 'https://lucky-icon.meiweiyuxian.com/hio/default_avatar_big.png'
+          };
+        }
+        that.setData({
+          isLoggedIn: false,
+          nickName: '',
+          mobile: '',
+          mobileDisplay: '未授权',
+          avatarUrl: DEFAULT_AVATAR,
+          avatarDisplayUrl: DEFAULT_AVATAR,
+          showLoginProfileSheet: false,
+          profileForSheet: {
+            nickname: '',
+            mobile: '',
+            avatar: DEFAULT_AVATAR
+          }
+        });
+        util.showSuccessToast('已退出登录');
+        wx.switchTab({
+          url: '/pages/ucenter/index/index'
+        });
+      }
+    });
   }
 });

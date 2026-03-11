@@ -2,6 +2,7 @@ var util = require('../../utils/util.js');
 var api = require('../../config/api.js');
 const pay = require('../../services/pay.js');
 const app = getApp()
+const ADDRESS_PICKED_ONCE_KEY = 'checkoutAddressPickedOnce';
 
 Page({
     data: {
@@ -212,18 +213,22 @@ Page({
     },
     onUnload: function () {
         wx.removeStorageSync('addressId');
+        wx.removeStorageSync(ADDRESS_PICKED_ONCE_KEY);
         this.stopPromotionTicker();
     },
     onHide: function () {
         this.stopPromotionTicker();
     },
     onShow: function () {
-        // 页面显示
-        // TODO结算时，显示默认地址，而不是从storage中获取的地址值
         try {
-            var addressId = wx.getStorageSync('addressId');
-            if (addressId == 0 || addressId == '') {
-                addressId = 0;
+            let addressId = 0;
+            const pickedOnce = Number(wx.getStorageSync(ADDRESS_PICKED_ONCE_KEY) || 0) === 1;
+            if (pickedOnce) {
+                const selectedAddressId = Number(wx.getStorageSync('addressId') || 0);
+                if (selectedAddressId > 0) {
+                    addressId = selectedAddressId;
+                }
+                wx.removeStorageSync(ADDRESS_PICKED_ONCE_KEY);
             }
             let selectedUserCouponIds = wx.getStorageSync('selectedUserCouponIds') || [];
             if (!Array.isArray(selectedUserCouponIds)) {
@@ -238,34 +243,48 @@ Page({
     },
     onPullDownRefresh: function () {
         wx.showNavigationBarLoading()
-        try {
-            var addressId = wx.getStorageSync('addressId');
-            if (addressId == 0 || addressId == '') {
-                addressId = 0;
-            }
-            this.setData({
-                'addressId': addressId
-            });
-        } catch (e) {
-            // Do something when catch error
-        }
         this.getCheckoutInfo();
         wx.hideNavigationBarLoading() //完成停止加载
         wx.stopPullDownRefresh() //停止下拉刷新
     },
-    getCheckoutInfo: function () {
-        let that = this;
-        let addressId = that.data.addressId;
-        let orderFrom = that.data.orderFrom;
-        let addType = that.data.addType;
-        let selectedUserCouponIds = that.data.selectedUserCouponIds || [];
-        util.request(api.CartCheckout, {
+    requestCheckout: function (addressIdOverride) {
+        const addressId = typeof addressIdOverride === 'number'
+            ? addressIdOverride
+            : this.data.addressId;
+        const orderFrom = this.data.orderFrom;
+        const addType = this.data.addType;
+        const selectedUserCouponIds = this.data.selectedUserCouponIds || [];
+        return util.request(api.CartCheckout, {
             addressId: addressId,
             addType: addType,
             orderFrom: orderFrom,
             type: 0,
             selectedUserCouponIds: selectedUserCouponIds.join(',')
-        }, 'GET', { page: that }).then(function (res) {
+        }, 'GET', { page: this });
+    },
+    ensureAddressBeforeSubmit: function () {
+        if (Number(this.data.addressId || 0) > 0) {
+            return Promise.resolve(true);
+        }
+        return this.requestCheckout(0).then((res) => {
+            if (res.errno !== 0) {
+                util.showErrorToast(res.errmsg || '结算信息加载失败');
+                return false;
+            }
+            this.applyCheckoutResponse(res.data || {});
+            if (Number(this.data.addressId || 0) > 0) {
+                return true;
+            }
+            util.showErrorToast('请选择收货地址');
+            return false;
+        }).catch(() => {
+            util.showErrorToast('地址信息加载失败，请稍后重试');
+            return false;
+        });
+    },
+    getCheckoutInfo: function () {
+        let that = this;
+        that.requestCheckout().then(function (res) {
             if (res.errno === 0) {
                 that.applyCheckoutResponse(res.data);
                 if (res.data.outStock == 1) {
@@ -291,78 +310,102 @@ Page({
             url: `/pages/order-coupon/index?addType=${this.data.addType || 0}&orderFrom=${this.data.orderFrom || 0}&selectedIds=${selectedIds.join(',')}`
         });
     },
-    // TODO 有个bug，用户没选择地址，支付无法继续进行，在切换过token的情况下
-    submitOrder: function (e) {
-        if (this.data.addressId <= 0) {
-            util.showErrorToast('请选择收货地址');
-            return false;
+    getRequestErrmsg: function (err, fallback) {
+        if (err && err.errmsg) {
+            return err.errmsg;
         }
-        let addressId = this.data.addressId;
-        let postscript = this.data.postscript;
-        let freightPrice = this.data.freightPrice;
-        let actualPrice = this.data.actualPrice;
-        wx.showLoading({
-            title: '',
-            mask:true
-        })
-        util.request(api.OrderSubmit, {
-            addressId: addressId,
-            postscript: postscript,
-            freightPrice: freightPrice,
-            actualPrice: actualPrice,
-            selectedUserCouponIds: (this.data.selectedUserCouponIds || []),
-            offlinePay: 0
-        }, 'POST', { page: this }).then(res => {
-            if (res.errno === 0) {
-                wx.removeStorageSync('orderId');
-                wx.setStorageSync('addressId', 0);
-                wx.removeStorageSync('selectedUserCouponIds');
-                const orderId = res.data.orderInfo.id;
-                pay.payOrder(parseInt(orderId)).then(res => {
-                    wx.redirectTo({
-                        url: '/pages/payResult/payResult?status=1&orderId=' + orderId
-                    });
-                }).catch(res => {
-                    wx.redirectTo({
-                        url: '/pages/payResult/payResult?status=0&orderId=' + orderId
-                    });
-                });
-            } else {
-                util.showErrorToast(res.errmsg);
+        if (err && err.message) {
+            return err.message;
+        }
+        return fallback || '请求失败，请稍后重试';
+    },
+    submitOrder: function (e) {
+        return this.ensureAddressBeforeSubmit().then((ready) => {
+            if (!ready) {
+                return false;
             }
-            wx.hideLoading()
+            let addressId = this.data.addressId;
+            let postscript = this.data.postscript;
+            let freightPrice = this.data.freightPrice;
+            let actualPrice = this.data.actualPrice;
+            wx.showLoading({
+                title: '',
+                mask:true
+            })
+            return util.request(api.OrderSubmit, {
+                addressId: addressId,
+                postscript: postscript,
+                freightPrice: freightPrice,
+                actualPrice: actualPrice,
+                selectedUserCouponIds: (this.data.selectedUserCouponIds || []),
+                offlinePay: 0
+            }, 'POST', { page: this }).then(res => {
+                if (res.errno === 0) {
+                    wx.removeStorageSync('orderId');
+                    wx.setStorageSync('addressId', 0);
+                    wx.removeStorageSync('selectedUserCouponIds');
+                    const orderId = res.data.orderInfo.id;
+                    pay.payOrder(parseInt(orderId)).then(res => {
+                        wx.redirectTo({
+                            url: '/pages/payResult/payResult?status=1&orderId=' + orderId
+                        });
+                    }).catch(res => {
+                        wx.redirectTo({
+                            url: '/pages/payResult/payResult?status=0&orderId=' + orderId
+                        });
+                    });
+                } else {
+                    util.showErrorToast(res.errmsg || '下单失败');
+                }
+            }).catch(err => {
+                util.showErrorToast(this.getRequestErrmsg(err, '下单失败，请稍后重试'));
+            }).finally(() => {
+                wx.hideLoading();
+            });
         });
     },
     offlineOrder: function (e) {
-        if (this.data.addressId <= 0) {
-            util.showErrorToast('请选择收货地址');
-            return false;
-        }
-        let addressId = this.data.addressId;
-        let postscript = this.data.postscript;
-        let freightPrice = this.data.freightPrice;
-        let actualPrice = this.data.actualPrice;
-        util.request(api.OrderSubmit, {
-            addressId: addressId,
-            postscript: postscript,
-            freightPrice: freightPrice,
-            actualPrice: actualPrice,
-            selectedUserCouponIds: (this.data.selectedUserCouponIds || []),
-            offlinePay: 1
-        }, 'POST', { page: this }).then(res => {
-            if (res.errno === 0) {
-                wx.removeStorageSync('orderId');
-                wx.setStorageSync('addressId', 0);
-                wx.removeStorageSync('selectedUserCouponIds');
-                wx.redirectTo({
-                    url: '/pages/payOffline/index?status=1',
-                })
-            } else {
-                util.showErrorToast(res.errmsg);
+        return this.ensureAddressBeforeSubmit().then((ready) => {
+            if (!ready) {
+                return false;
+            }
+            let addressId = this.data.addressId;
+            let postscript = this.data.postscript;
+            let freightPrice = this.data.freightPrice;
+            let actualPrice = this.data.actualPrice;
+            wx.showLoading({
+                title: '',
+                mask: true
+            });
+            return util.request(api.OrderSubmit, {
+                addressId: addressId,
+                postscript: postscript,
+                freightPrice: freightPrice,
+                actualPrice: actualPrice,
+                selectedUserCouponIds: (this.data.selectedUserCouponIds || []),
+                offlinePay: 1
+            }, 'POST', { page: this }).then(res => {
+                if (res.errno === 0) {
+                    wx.removeStorageSync('orderId');
+                    wx.setStorageSync('addressId', 0);
+                    wx.removeStorageSync('selectedUserCouponIds');
+                    wx.redirectTo({
+                        url: '/pages/payOffline/index?status=1',
+                    })
+                } else {
+                    util.showErrorToast(res.errmsg || '下单失败');
+                    wx.redirectTo({
+                        url: '/pages/payOffline/index?status=0',
+                    })
+                }
+            }).catch(err => {
+                util.showErrorToast(this.getRequestErrmsg(err, '下单失败，请稍后重试'));
                 wx.redirectTo({
                     url: '/pages/payOffline/index?status=0',
-                })
-            }
+                });
+            }).finally(() => {
+                wx.hideLoading();
+            });
         });
     },
     retryLoad: function () {

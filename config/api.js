@@ -23,6 +23,13 @@ const DEFAULT_DEVTOOLS_API_ROOT = 'http://127.0.0.1:8360';
 // 本地覆盖 key（由 app.js onLaunch 解析启动参数后写入/清除）
 const API_ROOT_OVERRIDE_KEY = 'apiRootOverride';
 
+const TRUSTED_EXACT_HOSTS = [
+  'api.fybshop.site',
+  '127.0.0.1',
+  'localhost',
+  '0.0.0.0'
+];
+
 function normalizeRoot(root) {
   const value = String(root || '').trim();
   if (!value) return '';
@@ -43,6 +50,25 @@ function isLocalAddressRoot(root) {
   );
 }
 
+function parseHost(root) {
+  const value = normalizeRoot(root);
+  if (!value) return '';
+  const match = value.match(/^https?:\/\/([^\/?#]+)/i);
+  return match ? String(match[1] || '').toLowerCase() : '';
+}
+
+function isAllowedOverrideRoot(root) {
+  const hostWithPort = parseHost(root);
+  if (!hostWithPort) return false;
+  const host = hostWithPort.split(':')[0];
+  if (TRUSTED_EXACT_HOSTS.indexOf(host) >= 0) return true;
+  if (host.endsWith('.fybshop.site')) return true;
+  if (/^192\.168\./.test(host)) return true;
+  if (/^10\./.test(host)) return true;
+  if (/^172\.(1[6-9]|2\d|3[0-1])\./.test(host)) return true;
+  return false;
+}
+
 function getStoredOverride() {
   try {
     return normalizeRoot(wx.getStorageSync(API_ROOT_OVERRIDE_KEY) || '');
@@ -60,6 +86,10 @@ function isDevtoolsRuntime() {
   return !isRealDevice();
 }
 
+function canUseApiRootOverride() {
+  return isDevtoolsRuntime() && (!features || features.allowApiRootOverride !== false);
+}
+
 // 计算最终使用的 API Root：
 // 1) 优先使用显式传入 explicitRoot（例如启动参数带 apiRoot）
 // 2) 其次使用本地缓存 override（apiRootOverride）
@@ -68,13 +98,12 @@ function isDevtoolsRuntime() {
 function resolveApiRoot(explicitRoot) {
   const explicit = normalizeRoot(explicitRoot);
   if (explicit) {
-    if (isRealDevice() && isLocalAddressRoot(explicit)) {
-      return DEFAULT_DEVICE_API_ROOT;
+    if (canUseApiRootOverride() && isAllowedOverrideRoot(explicit)) {
+      return explicit;
     }
-    return explicit;
   }
   const stored = getStoredOverride();
-  if (stored) {
+  if (stored && canUseApiRootOverride() && isAllowedOverrideRoot(stored)) {
     if (isRealDevice() && isLocalAddressRoot(stored)) {
       return DEFAULT_DEVICE_API_ROOT;
     }
@@ -89,7 +118,8 @@ const features = {
   newStore: true,
   telemetry: true,
   newUiV2: false,
-  vantEnabled: true
+  vantEnabled: true,
+  allowApiRootOverride: true
 };
 
 const api = {
@@ -199,6 +229,8 @@ function applyApiRoot(nextRoot) {
 // 对外暴露：允许 app.js 或调试页在运行时切换 API Root
 api.applyApiRoot = applyApiRoot;
 api.resolveApiRoot = resolveApiRoot;
+api.isAllowedOverrideRoot = isAllowedOverrideRoot;
+api.canUseApiRootOverride = canUseApiRootOverride;
 
 // 初始化：加载时立即根据运行环境 + override 计算并应用一次
 applyApiRoot();

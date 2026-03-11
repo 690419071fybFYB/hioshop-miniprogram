@@ -35,16 +35,27 @@ App({
     const queryApiRoot = String(query.apiRoot || query.api_root || extData.apiRoot || '').trim();
     // 传 clearApiRoot=1 时清除覆盖
     const clearOverride = String(query.clearApiRoot || query.clear_api_root || '').trim() === '1';
+    const canOverrideApiRoot = typeof api.canUseApiRootOverride === 'function'
+      ? api.canUseApiRootOverride()
+      : false;
     if (clearOverride) {
       try {
         wx.removeStorageSync('apiRootOverride');
       } catch (e) {}
       api.applyApiRoot('');
     } else if (queryApiRoot) {
-      try {
-        wx.setStorageSync('apiRootOverride', queryApiRoot);
-      } catch (e) {}
-      api.applyApiRoot(queryApiRoot);
+      if (canOverrideApiRoot && api.isAllowedOverrideRoot(queryApiRoot)) {
+        try {
+          wx.setStorageSync('apiRootOverride', queryApiRoot);
+        } catch (e) {}
+        api.applyApiRoot(queryApiRoot);
+      } else {
+        debugLog.append('api_root_override_ignored', {
+          queryApiRoot,
+          canOverrideApiRoot
+        });
+        api.applyApiRoot('');
+      }
     } else {
       // 未传覆盖参数时，使用默认配置（api.js 内部默认值 + 本地 override 逻辑）
       api.applyApiRoot('');
