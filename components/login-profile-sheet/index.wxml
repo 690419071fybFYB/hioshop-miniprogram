@@ -43,16 +43,20 @@
               class="phone-auth-btn"
               open-type="getPhoneNumber"
               bindgetphonenumber="onGetPhoneNumber"
+              loading="{{phoneLoading}}"
+              disabled="{{phoneLoading}}"
             >
-              去授权
+              {{phoneLoading ? '识别中...' : '一键识别'}}
             </button>
             <view wx:else class="phone-authorized">已授权</view>
           </view>
 
-          <view class="phone-helper">授权失败可手动输入</view>
+          <view class="phone-helper">
+            {{phoneAuthorized ? '已自动识别手机号，如需更换可手动输入' : '点击“一键识别”自动填充手机号'}}
+          </view>
 
           <view wx:if="{{!phoneManualMode}}" class="phone-manual-toggle" bindtap="togglePhoneManualInput">
-            手动输入手机号
+            {{phoneAuthorized ? '手动更换手机号' : '改为手动输入手机号'}}
           </view>
           <view wx:if="{{phoneManualMode}}" class="phone-manual-collapse" bindtap="togglePhoneManualInput">
             收起手动输入

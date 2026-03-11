@@ -101,8 +101,12 @@ Page({
     if (!token) {
       this.goAuth((ok) => {
         if (ok) {
-          this.getSettingsDetail();
+          this.getSettingsDetail({
+            forceOpenProfileSheet: true
+          });
         }
+      }, {
+        forceOpenProfileSheet: true
       });
       return;
     }
@@ -110,8 +114,9 @@ Page({
       showLoginProfileSheet: true
     });
   },
-  goAuth(done) {
+  goAuth(done, options) {
     let that = this;
+    const authOptions = options || {};
     wx.login({
       success: (res) => {
         if (!res.code) {
@@ -119,7 +124,7 @@ Page({
           if (typeof done === 'function') done(false);
           return;
         }
-        that.postLogin(res.code, done);
+        that.postLogin(res.code, done, authOptions);
       },
       fail: () => {
         util.showErrorToast('登录失败，请稍后重试');
@@ -127,8 +132,10 @@ Page({
       }
     });
   },
-  postLogin(code, done) {
+  postLogin(code, done, options) {
     let that = this;
+    const authOptions = options || {};
+    const forceOpenProfileSheet = !!authOptions.forceOpenProfileSheet;
     const inviteCode = session.getPendingInviteCode();
     util.request(api.AuthLoginByWeixin, {
       code: code,
@@ -138,7 +145,7 @@ Page({
         let userInfo = res.data.userInfo;
         that.setData({
           is_new: res.data.is_new,
-          showLoginProfileSheet: false
+          showLoginProfileSheet: forceOpenProfileSheet
         })
         that.setUserInfoView(userInfo);
         session.saveSession({
@@ -180,7 +187,9 @@ Page({
     this.getAdUnreadCount();
     wx.removeStorageSync('categoryId');
   },
-  getSettingsDetail() {
+  getSettingsDetail(options) {
+    const pageOptions = options || {};
+    const forceOpenProfileSheet = !!pageOptions.forceOpenProfileSheet;
     let that = this;
     util.request(api.SettingsDetail).then(function (res) {
       if (res.errno === 0) {
@@ -188,7 +197,7 @@ Page({
         const completed = session.syncProfileCompleted(userInfo);
         that.setUserInfoView(userInfo);
         that.setData({
-          showLoginProfileSheet: !completed
+          showLoginProfileSheet: forceOpenProfileSheet || !completed
         });
         app.globalData.userInfo = userInfo;
       } else if (res.errno === 100) {

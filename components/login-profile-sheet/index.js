@@ -20,6 +20,26 @@ function maskMobile(value) {
   return `${mobile.slice(0, 3)}****${mobile.slice(-4)}`;
 }
 
+function extractMobileFromPayload(payload) {
+  const data = payload || {};
+  const candidates = [
+    data.mobile,
+    data.phone,
+    data.phoneNumber,
+    data.purePhoneNumber,
+    data.phone_number,
+    data.phone_info && data.phone_info.phoneNumber,
+    data.phone_info && data.phone_info.purePhoneNumber
+  ];
+  for (let i = 0; i < candidates.length; i += 1) {
+    const candidate = normalizeMobile(candidates[i]);
+    if (isValidMobile(candidate)) {
+      return candidate;
+    }
+  }
+  return '';
+}
+
 Component({
   properties: {
     visible: {
@@ -47,7 +67,8 @@ Component({
     avatarDisplayUrl: DEFAULT_AVATAR,
     submitting: false,
     phoneAuthorized: false,
-    phoneManualMode: false
+    phoneManualMode: false,
+    phoneLoading: false
   },
   observers: {
     visible(value) {
@@ -65,7 +86,7 @@ Component({
     hydrateForm() {
       const profile = this.properties.initialProfile || {};
       const nickname = String(profile.nickname || profile.nickName || '').trim();
-      const mobile = normalizeMobile(profile.mobile);
+      const mobile = extractMobileFromPayload(profile);
       const avatarUrl = profile.avatar || DEFAULT_AVATAR;
       const phoneValid = isValidMobile(mobile);
       this.setData({
@@ -76,6 +97,40 @@ Component({
         avatarDisplayUrl: util.normalizeImageUrl(avatarUrl, api.ApiRoot),
         phoneAuthorized: phoneValid,
         phoneManualMode: false
+      });
+      if (!phoneValid) {
+        this.tryHydrateMobileFromServer();
+      }
+    },
+    tryHydrateMobileFromServer() {
+      const token = wx.getStorageSync('token') || '';
+      if (!token || this.data.phoneAuthorized || this.data.phoneLoading) {
+        return;
+      }
+      const that = this;
+      that.setData({
+        phoneLoading: true
+      });
+      util.request(api.SettingsDetail, {}, 'GET', {
+        silent401: true
+      }).then(function(res) {
+        if (res.errno !== 0 || !res.data) {
+          return;
+        }
+        const mobile = extractMobileFromPayload(res.data);
+        if (!isValidMobile(mobile)) {
+          return;
+        }
+        that.setData({
+          mobile,
+          mobileMasked: maskMobile(mobile),
+          phoneAuthorized: true,
+          phoneManualMode: false
+        });
+      }).finally(function() {
+        that.setData({
+          phoneLoading: false
+        });
       });
     },
     onNickNameInput(e) {
@@ -90,7 +145,8 @@ Component({
       this.setData({
         mobile,
         mobileMasked: maskMobile(mobile),
-        phoneManualMode: true
+        phoneManualMode: true,
+        phoneAuthorized: false
       });
     },
     togglePhoneManualInput() {
@@ -195,8 +251,8 @@ Component({
       }
       const that = this;
       util.request(api.AuthPhoneNumber, requestPayload, 'POST').then(function(res) {
-        if (res.errno === 0 && res.data && res.data.mobile) {
-          const mobile = normalizeMobile(res.data.mobile);
+        const mobile = extractMobileFromPayload(res && res.data);
+        if (res.errno === 0 && isValidMobile(mobile)) {
           that.setData({
             mobile,
             mobileMasked: maskMobile(mobile),
