@@ -95,6 +95,15 @@
             </view>
             <view class="arrow"></view>
         </view>
+        <view class="list" bindtap="toGroupon">
+            <view class="list-l">
+                <view class="icon">
+                    <image lazy-load="true" class="img" src="/images/icon/icon-coupon-local.png"></image>
+                </view>
+                <view class="text">我的拼团</view>
+            </view>
+            <view class="arrow"></view>
+        </view>
         <view class="list" bindtap="toInvite">
             <view class="list-l">
                 <view class="icon">
@@ -148,6 +157,7 @@
         <van-cell title="地址管理" is-link bindtap="toAddressList" />
         <van-cell title="我的足迹" is-link bindtap="toFootprint" />
         <van-cell title="我的优惠券" is-link bindtap="toCoupon" />
+        <van-cell title="我的拼团" is-link bindtap="toGroupon" />
         <van-cell title="邀请有礼" is-link bindtap="toInvite" />
         <van-cell title="广告消息" value="{{adUnreadCount > 0 ? (adUnreadCount > 99 ? '99+' : adUnreadCount) : ''}}" is-link bindtap="toAdMessage" />
         <button class="contact-btn-v2" session-from='{"nickName":"{{userInfo.nickname}}","avatarUrl":"{{userInfo.avatar}}"}' open-type="contact">联系客服</button>

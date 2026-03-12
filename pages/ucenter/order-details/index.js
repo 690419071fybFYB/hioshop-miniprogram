@@ -5,7 +5,6 @@ var remaintimer = require('../../../utils/remainTime.js');
 const pay = require('../../../services/pay.js');
 const app = getApp()
 
-// TODO 拼团订单不能退款
 Page({
     data: {
         orderId: 0,
@@ -51,11 +50,6 @@ Page({
         let orderId = this.data.orderId;
         wx.navigateTo({
             url: '/pages/ucenter/express-info/index?id=' + orderId,
-        });
-    },
-    toRefundSelect: function (e) {
-        wx.navigateTo({
-            url: '/pages/refund-select/index',
         });
     },
     payOrder: function (e) {

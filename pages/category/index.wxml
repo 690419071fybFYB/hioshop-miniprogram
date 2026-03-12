@@ -31,8 +31,10 @@
                         <navigator hover-class='none' class='navi-url' url="/pages/goods/goods?id={{item.id}}">
                             <view class="box">
                                 <image lazy-load="true" src="{{item.list_pic_url}}" class="image"></image>
-                                <van-tag wx:if="{{uiV2 && item.is_new == 1}}" class='new-tag' type="danger" plain>新品</van-tag>
-                                <view wx:if="{{!uiV2 && item.is_new == 1}}" class='new-tag'>新品</view>
+                                <van-tag wx:if="{{uiV2 && item.isHotSale}}" class='new-tag hot-tag' type="danger">{{item.hotTagText}}</van-tag>
+                                <van-tag wx:elif="{{uiV2 && item.is_new == 1}}" class='new-tag' type="danger" plain>新品</van-tag>
+                                <view wx:if="{{!uiV2 && item.isHotSale}}" class='new-tag hot-tag'>{{item.hotTagText}}</view>
+                                <view wx:elif="{{!uiV2 && item.is_new == 1}}" class='new-tag'>新品</view>
                                 <block wx:if="{{item.goods_number <= 0}}">
                                     <!-- <view class='no-goods-mask'></view> -->
                                     <view class='sold-img'>

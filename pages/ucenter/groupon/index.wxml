@@ -1,0 +1,31 @@
+<view class="container">
+  <view class="tab-row">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="tab-item {{tab === item.key ? 'tab-item--active' : ''}}"
+      data-tab="{{item.key}}"
+      bindtap="switchTab"
+    >
+      {{item.text}}
+    </view>
+  </view>
+
+  <view class="error-box" wx:if="{{hasError}}">
+    <text>{{errorMessage}}</text>
+    <button size="mini" bindtap="retryLoad">重试</button>
+  </view>
+
+  <view class="loading-box" wx:if="{{loading}}">拼团记录加载中...</view>
+
+  <view class="card" wx:for="{{list}}" wx:key="id" data-item="{{item}}" bindtap="openDetail">
+    <view class="title-row">
+      <text class="title">{{item.activityName}}</text>
+      <text class="status">{{item.statusText}}</text>
+    </view>
+    <view class="meta">进度：{{item.joinedSize}}/{{item.requiredSize}}</view>
+    <view class="meta" wx:if="{{item.expireText}}">{{item.expireText}}</view>
+  </view>
+
+  <view class="empty" wx:if="{{!loading && list.length === 0 && !hasError}}">暂无拼团记录</view>
+</view>

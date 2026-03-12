@@ -11,6 +11,8 @@
         "pages/order-coupon/index",
         "pages/order-check/index",
         "pages/goods/goods",
+        "pages/groupon/list/index",
+        "pages/groupon/detail/index",
         "pages/ucenter/about/index",
         "pages/ucenter/address/index",
         "pages/ucenter/address-detail/index",
@@ -23,6 +25,7 @@
         "pages/ucenter/order-details/index",
         "pages/ucenter/express-info/index",
         "pages/ucenter/coupon/index",
+        "pages/ucenter/groupon/index",
         "pages/ucenter/footprint/index",
         "pages/payResult/payResult",
         "pages/payOffline/index"

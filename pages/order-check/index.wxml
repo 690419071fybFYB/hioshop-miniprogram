@@ -4,6 +4,10 @@
 		<button size="mini" bindtap="retryLoad" style="margin-left:16rpx;">重试</button>
 	</view>
 	<view class='wrap'>
+		<view class="groupon-banner" wx:if="{{isGroupon}}">
+			<text class="groupon-banner-title">拼团结算</text>
+			<text class="groupon-banner-desc">{{grouponTip}}</text>
+		</view>
 		<view class="address-box">
 			<view class="receive-title">收件人</view>
 			<view class='add-address' bindtap="toSelectAddress" wx:if="{{checkedAddress.id > 0}}">
@@ -59,13 +63,17 @@
 				<view class="row-label">快递</view>
 				<view class="right-text">¥{{freightPrice}}</view>
 			</view>
-			<view class="row-box" bindtap="goSelectCoupon">
+			<view class="row-box" bindtap="goSelectCoupon" wx:if="{{!isGroupon}}">
 				<view class="row-label">优惠券</view>
 				<view class="right-text">
 					<text wx:if="{{selectedCoupons.length > 0}}">已选{{selectedCoupons.length}}张，-¥{{couponPrice}}</text>
 					<text wx:elif="{{selectedUserCouponIds.length > 0}}">已选择{{selectedUserCouponIds.length}}张（待比价）</text>
 					<text wx:else>去选择</text>
 				</view>
+			</view>
+			<view class="row-box" wx:if="{{isGroupon}}">
+				<view class="row-label">优惠券</view>
+				<view class="right-text tip-text">{{grouponTip}}</view>
 			</view>
 			<view class="row-box">
 				<view class="row-label">促销优惠</view>

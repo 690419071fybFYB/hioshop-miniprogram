@@ -1,0 +1,54 @@
+<view class="container">
+  <view class="error-box" wx:if="{{hasError}}">
+    <text>{{errorMessage}}</text>
+    <button size="mini" bindtap="retryLoad">重试</button>
+  </view>
+
+  <view class="loading-box" wx:if="{{loading}}">拼团详情加载中...</view>
+
+  <block wx:if="{{!loading && activity}}">
+    <view class="hero-card">
+      <image class="hero-cover" src="{{activity.listPicUrl}}" mode="aspectFill"></image>
+      <view class="hero-content">
+        <view class="hero-title">{{activity.name}}</view>
+        <view class="hero-meta">{{activity.groupSize}}人成团 · {{activity.countdownText}}</view>
+        <view class="hero-price-row">
+          <text class="price-main">¥{{activity.groupPrice}}</text>
+          <text class="price-old" wx:if="{{activity.retailPrice && activity.retailPrice !== '0.00'}}">¥{{activity.retailPrice}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="team-card" wx:if="{{team}}">
+      <view class="section-title">当前团</view>
+      <view class="team-row">
+        <text>进度：{{team.joinedSize}} / {{team.requiredSize}}</text>
+        <text>{{team.countdownText}}</text>
+      </view>
+      <view class="member-list" wx:if="{{team.members.length > 0}}">
+        <view class="member-item" wx:for="{{team.members}}" wx:key="user_id">
+          <text>{{item.nickname || item.user_nickname || ('用户' + (index + 1))}}</text>
+        </view>
+      </view>
+      <view class="action-row">
+        <button class="btn" bindtap="joinCurrentTeam">去参团</button>
+      </view>
+    </view>
+
+    <view class="team-card" wx:if="{{openTeams.length > 0}}">
+      <view class="section-title">可参团列表</view>
+      <view class="open-team-item" wx:for="{{openTeams}}" wx:key="id">
+        <view class="team-row">
+          <text>{{item.leaderName}} 的团</text>
+          <text>{{item.joinedSize}}/{{item.requiredSize}} · {{item.countdownText}}</text>
+        </view>
+        <button class="btn btn-small" data-team-id="{{item.id}}" bindtap="joinOpenTeam">去参团</button>
+      </view>
+    </view>
+
+    <view class="action-fixed">
+      <button class="btn btn-ghost" bindtap="goGoodsDetail">查看商品</button>
+      <button class="btn" bindtap="openGroup">去开团</button>
+    </view>
+  </block>
+</view>

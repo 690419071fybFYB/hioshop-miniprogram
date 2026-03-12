@@ -222,11 +222,26 @@ Page({
         item.promotionCountdownText = hasPromotion ? this.formatPromotionCountdown(promotionEndAt) : '';
         return item;
     },
+    applyHotSaleTagForList(goodsList) {
+        return (goodsList || []).map((goods, index) => {
+            const item = Object.assign({}, goods || {});
+            const rank = index + 1;
+            const sellVolume = Number(item.sell_volume || 0);
+            const goodsNumber = Number(item.goods_number || 0);
+            const isHotSale = rank <= 3 && sellVolume > 0 && goodsNumber > 0;
+            item.isHotSale = isHotSale;
+            item.hotTagText = isHotSale ? '热销' : '';
+            return item;
+        });
+    },
     mapCategoryPromotionDisplay(categoryList) {
-        return (categoryList || []).map((category) => ({
-            ...category,
-            goodsList: (category.goodsList || []).map((goods) => this.mapGoodsPromotionDisplay(goods))
-        }));
+        return (categoryList || []).map((category) => {
+            const promotedGoodsList = (category.goodsList || []).map((goods) => this.mapGoodsPromotionDisplay(goods));
+            return {
+                ...category,
+                goodsList: this.applyHotSaleTagForList(promotedGoodsList)
+            };
+        });
     },
     hasPromotionGoods(categoryList) {
         return (categoryList || []).some((category) => (category.goodsList || []).some((goods) => !!goods.hasPromotion));

@@ -1,5 +1,4 @@
 <view class="container">
-	<!--   TODO 将状态码都去掉！  -->
 	<view class='status-wrap' bindtap='clearTimer'>
 		<view class='status-text'>
 			<image wx:if="{{textCode.pay == true}}" class='icon to-pay' src="https://fybshopbk-1369967353.cos.ap-shanghai.myqcloud.com/images/icon/to-pay-w.png"></image>

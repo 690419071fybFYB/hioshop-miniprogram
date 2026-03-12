@@ -195,6 +195,14 @@ function applyApiRoot(nextRoot) {
   api.OrderExpressInfo = apiRootUrl + 'order/express';
   api.OrderGoods = apiRootUrl + 'order/orderGoods';
 
+  // 拼团
+  api.GrouponActivityList = apiRootUrl + 'groupon/activityList';
+  api.GrouponActivityDetail = apiRootUrl + 'groupon/activityDetail';
+  api.GrouponTeamDetail = apiRootUrl + 'groupon/teamDetail';
+  api.GrouponCheckout = apiRootUrl + 'groupon/checkout';
+  api.GrouponSubmit = apiRootUrl + 'groupon/submit';
+  api.GrouponMyTeams = apiRootUrl + 'groupon/myTeams';
+
   // 优惠券
   api.CouponCenter = apiRootUrl + 'coupon/center';
   api.CouponReceive = apiRootUrl + 'coupon/receive';

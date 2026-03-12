@@ -59,6 +59,18 @@ Page({
         item.promotionCountdownText = hasPromotion ? this.formatPromotionCountdown(promotionEndAt) : '';
         return item;
     },
+    applyHotSaleTagForList(goodsList) {
+        return (goodsList || []).map((goods, index) => {
+            const item = Object.assign({}, goods || {});
+            const rank = index + 1;
+            const sellVolume = Number(item.sell_volume || 0);
+            const goodsNumber = Number(item.goods_number || 0);
+            const isHotSale = rank <= 3 && sellVolume > 0 && goodsNumber > 0;
+            item.isHotSale = isHotSale;
+            item.hotTagText = isHotSale ? '热销' : '';
+            return item;
+        });
+    },
     hasPromotionGoods(list) {
         return (list || []).some((item) => !!item.hasPromotion);
     },
@@ -192,20 +204,21 @@ Page({
                     return that.mapGoodsPromotionDisplay(next);
                 }) : [];
                 const mergedList = that.data.list.concat(incoming);
+                const rankedList = that.applyHotSaleTagForList(mergedList);
                 const count = Number(res.data.count || 0);
                 const currentPage = Number(res.data.currentPage || targetPage || 1);
                 const hasMore = incoming.length > 0 && mergedList.length < count;
                 that.setData({
                     allCount: count,
                     allPage: currentPage,
-                    list: mergedList,
+                    list: rankedList,
                     showNoMore: hasMore ? 1 : 0,
                     loading: 0,
                     isLoadingMore: false,
                     hasError: false,
                     errorMessage: ''
                 });
-                if (that.hasPromotionGoods(mergedList)) {
+                if (that.hasPromotionGoods(rankedList)) {
                     that.startPromotionTicker();
                 } else {
                     that.stopPromotionTicker();

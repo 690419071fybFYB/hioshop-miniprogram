@@ -693,6 +693,11 @@
     border-radius: 0 40rpx 40rpx 0;
 }
 
+.new-box .navi-url .box .hot-tag {
+    width: 72rpx;
+    background: #ff3456;
+}
+
 .new-box .navi-url .goods-info .goods-title {
     font-size: 24rpx;
     color: #222;

@@ -35,7 +35,14 @@ Page({
         payMethod:1,
         hasError: false,
         errorMessage: '',
-        promotionCountdownTip: ''
+        promotionCountdownTip: '',
+        orderType: 0,
+        isGroupon: false,
+        grouponActivityId: 0,
+        teamId: 0,
+        grouponProductId: 0,
+        grouponNumber: 1,
+        grouponTip: '拼团订单不支持优惠券'
     },
     formatPromotionCountdown(endAt) {
         const endTs = Number(endAt || 0);
@@ -130,7 +137,9 @@ Page({
     applyCheckoutResponse(data) {
         const checkedGoodsList = this.mapPromotionDisplay(data.checkedGoodsList || []);
         const promotionCountdownTip = this.computePromotionCountdownTip(checkedGoodsList);
-        const nextSelectedIds = (data.selectedCoupons || []).map((item) => Number(item.user_coupon_id));
+        const nextSelectedIds = this.data.isGroupon
+            ? []
+            : (data.selectedCoupons || []).map((item) => Number(item.user_coupon_id));
         let addressId = 0;
         if (data.checkedAddress != 0) {
             addressId = data.checkedAddress.id;
@@ -141,9 +150,9 @@ Page({
             actualPrice: data.actualPrice,
             addressId: addressId,
             freightPrice: data.freightPrice,
-            couponPrice: data.couponPrice || 0,
-            couponCandidates: data.couponCandidates || [],
-            selectedCoupons: data.selectedCoupons || [],
+            couponPrice: this.data.isGroupon ? 0 : (data.couponPrice || 0),
+            couponCandidates: this.data.isGroupon ? [] : (data.couponCandidates || []),
+            selectedCoupons: this.data.isGroupon ? [] : (data.selectedCoupons || []),
             selectedUserCouponIds: nextSelectedIds,
             goodsOriginalPrice: data.goodsOriginalPrice || data.goodsTotalPrice || 0,
             promotionPrice: data.promotionPrice || 0,
@@ -156,7 +165,11 @@ Page({
             errorMessage: ''
         });
         wx.setStorageSync('addressId', addressId);
-        wx.setStorageSync('selectedUserCouponIds', nextSelectedIds);
+        if (!this.data.isGroupon) {
+            wx.setStorageSync('selectedUserCouponIds', nextSelectedIds);
+        } else {
+            wx.removeStorageSync('selectedUserCouponIds');
+        }
         if (promotionCountdownTip) {
             this.startPromotionTicker();
         } else {
@@ -200,6 +213,19 @@ Page({
     onLoad: function (options) {
         let addType = options.addtype;
         let orderFrom = options.orderFrom;
+        const orderType = Number(options.orderType || 0);
+        const grouponActivityId = Number(options.grouponActivityId || 0);
+        const teamId = Number(options.teamId || 0);
+        const grouponProductId = Number(options.productId || 0);
+        const grouponNumber = Number(options.number || 1);
+        this.setData({
+            orderType: orderType,
+            isGroupon: orderType === 2,
+            grouponActivityId: grouponActivityId,
+            teamId: teamId,
+            grouponProductId: grouponProductId,
+            grouponNumber: grouponNumber > 0 ? grouponNumber : 1
+        });
         if (addType != undefined) {
             this.setData({
                 addType: addType
@@ -234,6 +260,9 @@ Page({
             if (!Array.isArray(selectedUserCouponIds)) {
                 selectedUserCouponIds = [];
             }
+            if (this.data.isGroupon) {
+                selectedUserCouponIds = [];
+            }
             this.setData({
                 'addressId': addressId,
                 selectedUserCouponIds: selectedUserCouponIds
@@ -251,6 +280,16 @@ Page({
         const addressId = typeof addressIdOverride === 'number'
             ? addressIdOverride
             : this.data.addressId;
+        if (this.data.isGroupon) {
+            return util.request(api.GrouponCheckout, {
+                addressId: addressId,
+                grouponActivityId: this.data.grouponActivityId,
+                teamId: this.data.teamId,
+                productId: this.data.grouponProductId,
+                number: this.data.grouponNumber,
+                type: 2
+            }, 'GET', { page: this });
+        }
         const orderFrom = this.data.orderFrom;
         const addType = this.data.addType;
         const selectedUserCouponIds = this.data.selectedUserCouponIds || [];
@@ -305,6 +344,10 @@ Page({
         });
     },
     goSelectCoupon: function () {
+        if (this.data.isGroupon) {
+            util.showErrorToast(this.data.grouponTip);
+            return;
+        }
         const selectedIds = this.data.selectedUserCouponIds || [];
         wx.navigateTo({
             url: `/pages/order-coupon/index?addType=${this.data.addType || 0}&orderFrom=${this.data.orderFrom || 0}&selectedIds=${selectedIds.join(',')}`
@@ -328,16 +371,23 @@ Page({
             let postscript = this.data.postscript;
             let freightPrice = this.data.freightPrice;
             let actualPrice = this.data.actualPrice;
+            const isGroupon = this.data.isGroupon;
+            const submitApi = isGroupon ? api.GrouponSubmit : api.OrderSubmit;
             wx.showLoading({
                 title: '',
                 mask:true
             })
-            return util.request(api.OrderSubmit, {
+            return util.request(submitApi, {
                 addressId: addressId,
                 postscript: postscript,
                 freightPrice: freightPrice,
                 actualPrice: actualPrice,
-                selectedUserCouponIds: (this.data.selectedUserCouponIds || []),
+                selectedUserCouponIds: isGroupon ? [] : (this.data.selectedUserCouponIds || []),
+                grouponActivityId: this.data.grouponActivityId,
+                teamId: this.data.teamId,
+                productId: this.data.grouponProductId,
+                number: this.data.grouponNumber,
+                orderType: this.data.orderType,
                 offlinePay: 0
             }, 'POST', { page: this }).then(res => {
                 if (res.errno === 0) {
@@ -373,16 +423,23 @@ Page({
             let postscript = this.data.postscript;
             let freightPrice = this.data.freightPrice;
             let actualPrice = this.data.actualPrice;
+            const isGroupon = this.data.isGroupon;
+            const submitApi = isGroupon ? api.GrouponSubmit : api.OrderSubmit;
             wx.showLoading({
                 title: '',
                 mask: true
             });
-            return util.request(api.OrderSubmit, {
+            return util.request(submitApi, {
                 addressId: addressId,
                 postscript: postscript,
                 freightPrice: freightPrice,
                 actualPrice: actualPrice,
-                selectedUserCouponIds: (this.data.selectedUserCouponIds || []),
+                selectedUserCouponIds: isGroupon ? [] : (this.data.selectedUserCouponIds || []),
+                grouponActivityId: this.data.grouponActivityId,
+                teamId: this.data.teamId,
+                productId: this.data.grouponProductId,
+                number: this.data.grouponNumber,
+                orderType: this.data.orderType,
                 offlinePay: 1
             }, 'POST', { page: this }).then(res => {
                 if (res.errno === 0) {

@@ -18,6 +18,7 @@ Page({
         checkedSpecPromoPrice: 0,
         checkedSpecOriginalPrice: 0,
         checkedSpecHasCouponPromo: false,
+        checkedSpecShowOriginalPrice: false,
         number: 1,
         checkedSpecText: '',
         tmpSpecText: '请选择规格和数量',
@@ -37,7 +38,8 @@ Page({
         hasError: false,
         errorMessage: '',
         uiV2: !!(api.features.newUiV2 && api.features.vantEnabled),
-        vantEnabled: !!api.features.vantEnabled
+        vantEnabled: !!api.features.vantEnabled,
+        grouponActivities: []
     },
     formatPromotionCountdown(endAt) {
         const endTs = Number(endAt || 0);
@@ -66,10 +68,18 @@ Page({
         const displayOriginalPrice = hasPromotion ? (item.promotion_original_price || item.original_price || retailPrice) : retailPrice;
         const displayPromotionTag = hasPromotion ? (item.promotion_tag || item.promo_tag || '') : '';
         const promotionEndAt = Number(item.promotion_end_at || 0);
+        const originalPriceNumber = Number(displayOriginalPrice || 0);
+        const currentPriceNumber = Number(displayPrice || 0);
+        const showOriginalPrice = hasPromotion &&
+            Number.isFinite(originalPriceNumber) &&
+            Number.isFinite(currentPriceNumber) &&
+            originalPriceNumber > 0 &&
+            originalPriceNumber > currentPriceNumber;
         return Object.assign({}, item, {
             hasPromotion,
             displayPrice,
             displayOriginalPrice,
+            showOriginalPrice,
             displayPromotionTag,
             promotionEndAt,
             promotionCountdownText: hasPromotion ? this.formatPromotionCountdown(promotionEndAt) : ''
@@ -80,7 +90,8 @@ Page({
         return {
             hasCouponPromo: !!item.hasPromotion,
             promoPrice: item.displayPrice,
-            originalPrice: item.displayOriginalPrice
+            originalPrice: item.displayOriginalPrice,
+            showOriginalPrice: !!item.showOriginalPrice
         };
     },
     hasPromotionInGoods(goods, productList) {
@@ -124,6 +135,200 @@ Page({
             });
         }
     },
+    formatGrouponCountdown(endAt) {
+        const endTs = Number(endAt || 0);
+        if (!endTs) {
+            return '';
+        }
+        const remain = endTs - Math.floor(Date.now() / 1000);
+        if (remain <= 0) {
+            return '已结束';
+        }
+        const day = Math.floor(remain / 86400);
+        const hour = Math.floor((remain % 86400) / 3600);
+        const minute = Math.floor((remain % 3600) / 60);
+        const second = Math.floor(remain % 60);
+        if (day > 0) {
+            return `剩余${day}天${hour}时`;
+        }
+        const pad = (n) => String(n).padStart(2, '0');
+        return `剩余${pad(hour)}:${pad(minute)}:${pad(second)}`;
+    },
+    mapGrouponTeam(raw) {
+        const id = Number(raw.id || raw.team_id || 0);
+        if (id <= 0) {
+            return null;
+        }
+        const expireAt = Number(raw.expire_at || raw.end_at || 0);
+        const joinedSize = Number(raw.joined_size || raw.member_count || 0);
+        const requiredSize = Number(raw.required_size || raw.group_size || 2);
+        return {
+            id,
+            leaderName: raw.leader_name || raw.nickname || '团长',
+            joinedSize,
+            requiredSize,
+            expireAt,
+            countdownText: this.formatGrouponCountdown(expireAt)
+        };
+    },
+    mapGrouponActivity(raw) {
+        const id = Number(raw.id || raw.activity_id || 0);
+        if (id <= 0) {
+            return null;
+        }
+        const endAt = Number(raw.end_at || 0);
+        const teamRows = Array.isArray(raw.open_teams) ? raw.open_teams : (Array.isArray(raw.teams) ? raw.teams : []);
+        return {
+            id,
+            name: raw.name || raw.activity_name || '拼团活动',
+            groupPrice: Number(raw.group_price || 0).toFixed(2),
+            groupSize: Number(raw.group_size || 2),
+            endAt,
+            countdownText: this.formatGrouponCountdown(endAt),
+            openTeams: teamRows.map((team) => this.mapGrouponTeam(team)).filter(Boolean)
+        };
+    },
+    refreshGrouponCountdown() {
+        const list = this.data.grouponActivities || [];
+        if (!list.length) {
+            return;
+        }
+        let changed = false;
+        const nextList = list.map((item) => {
+            const nextCountdownText = this.formatGrouponCountdown(item.endAt);
+            const nextTeams = (item.openTeams || []).map((team) => {
+                const nextTeamCountdown = this.formatGrouponCountdown(team.expireAt);
+                if (nextTeamCountdown === team.countdownText) {
+                    return team;
+                }
+                changed = true;
+                return Object.assign({}, team, {
+                    countdownText: nextTeamCountdown
+                });
+            });
+            if (nextCountdownText === item.countdownText && nextTeams === item.openTeams) {
+                return item;
+            }
+            if (nextCountdownText !== item.countdownText) {
+                changed = true;
+            }
+            return Object.assign({}, item, {
+                countdownText: nextCountdownText,
+                openTeams: nextTeams
+            });
+        });
+        if (changed) {
+            this.setData({
+                grouponActivities: nextList
+            });
+        }
+    },
+    getGrouponActivities() {
+        util.request(api.GrouponActivityList, {
+            goodsId: this.data.id,
+            page: 1,
+            size: 5
+        }, 'GET', { page: this }).then((res) => {
+            if (res.errno !== 0) {
+                this.setData({
+                    grouponActivities: []
+                });
+                return;
+            }
+            const payload = res.data || {};
+            const rows = Array.isArray(payload.data) ? payload.data : (Array.isArray(payload) ? payload : []);
+            const mapped = rows.map((item) => this.mapGrouponActivity(item)).filter(Boolean);
+            this.setData({
+                grouponActivities: mapped
+            });
+            if (mapped.length > 0) {
+                this.startPromotionTicker();
+            }
+        }).catch(() => {
+            this.setData({
+                grouponActivities: []
+            });
+        });
+    },
+    resolveGrouponCheckoutProduct() {
+        const productList = this.data.productList || [];
+        if (productList.length === 1) {
+            const product = productList[0];
+            if (Number(product.goods_number || 0) < Number(this.data.number || 1)) {
+                wx.showToast({
+                    image: '/images/icon/icon_error.png',
+                    title: '库存不足',
+                });
+                return null;
+            }
+            return product;
+        }
+        if (!this.isCheckedAllSpec()) {
+            wx.showToast({
+                image: '/images/icon/icon_error.png',
+                title: '请选择规格',
+            });
+            this.setData({
+                openAttr: true
+            });
+            return null;
+        }
+        const checkedProductArray = this.getCheckedProductItem(this.getCheckedSpecKey());
+        if (!checkedProductArray || checkedProductArray.length <= 0) {
+            wx.showToast({
+                image: '/images/icon/icon_error.png',
+                title: '库存不足',
+            });
+            return null;
+        }
+        const checkedProduct = checkedProductArray[0];
+        if (Number(checkedProduct.goods_number || 0) < Number(this.data.number || 1)) {
+            wx.showToast({
+                image: '/images/icon/icon_error.png',
+                title: '库存不足',
+            });
+            return null;
+        }
+        return checkedProduct;
+    },
+    goGrouponList() {
+        wx.navigateTo({
+            url: '/pages/groupon/list/index?goodsId=' + this.data.id
+        });
+    },
+    goOpenGroupon(event) {
+        if (!util.loginNow()) {
+            return;
+        }
+        const activityId = Number(event.currentTarget.dataset.activityId || 0);
+        if (activityId <= 0) {
+            return;
+        }
+        const checkedProduct = this.resolveGrouponCheckoutProduct();
+        if (!checkedProduct) {
+            return;
+        }
+        wx.navigateTo({
+            url: '/pages/order-check/index?orderType=2&grouponActivityId=' + activityId + '&productId=' + checkedProduct.id + '&number=' + this.data.number
+        });
+    },
+    goJoinGroupon(event) {
+        if (!util.loginNow()) {
+            return;
+        }
+        const activityId = Number(event.currentTarget.dataset.activityId || 0);
+        const teamId = Number(event.currentTarget.dataset.teamId || 0);
+        if (activityId <= 0 || teamId <= 0) {
+            return;
+        }
+        const checkedProduct = this.resolveGrouponCheckoutProduct();
+        if (!checkedProduct) {
+            return;
+        }
+        wx.navigateTo({
+            url: '/pages/order-check/index?orderType=2&grouponActivityId=' + activityId + '&teamId=' + teamId + '&productId=' + checkedProduct.id + '&number=' + this.data.number
+        });
+    },
     stopPromotionTicker() {
         if (this.promotionTicker) {
             clearInterval(this.promotionTicker);
@@ -134,6 +339,7 @@ Page({
         this.stopPromotionTicker();
         this.promotionTicker = setInterval(() => {
             this.refreshPromotionCountdown();
+            this.refreshGrouponCountdown();
         }, 1000);
     },
     hideDialog: function (e) {
@@ -236,6 +442,7 @@ Page({
                     checkedSpecPromoPrice: defaultPriceDisplay.promoPrice,
                     checkedSpecOriginalPrice: defaultPriceDisplay.originalPrice,
                     checkedSpecHasCouponPromo: defaultPriceDisplay.hasCouponPromo,
+                    checkedSpecShowOriginalPrice: defaultPriceDisplay.showOriginalPrice,
                     galleryImages: galleryImages,
                     loading:1,
                     hasError: false,
@@ -246,6 +453,7 @@ Page({
                 } else {
                     that.stopPromotionTicker();
                 }
+                that.getGrouponActivities();
                 setTimeout(() => {
                     WxParse.wxParse('goodsDetail', 'html', res.data.info.goods_desc, that);
                 }, 1000);
@@ -262,6 +470,9 @@ Page({
                 errorMessage: '商品详情加载失败'
             });
             that.stopPromotionTicker();
+            that.setData({
+                grouponActivities: []
+            });
             util.showErrorToast('商品详情加载失败');
         });
     },
@@ -388,6 +599,7 @@ Page({
                     checkedSpecPromoPrice: selectedPriceDisplay.promoPrice,
                     checkedSpecOriginalPrice: selectedPriceDisplay.originalPrice,
                     checkedSpecHasCouponPromo: selectedPriceDisplay.hasCouponPromo,
+                    checkedSpecShowOriginalPrice: selectedPriceDisplay.showOriginalPrice,
                     goodsNumber: checkedProduct.goods_number,
                     soldout: true
                 });
@@ -403,6 +615,7 @@ Page({
                     checkedSpecPromoPrice: selectedPriceDisplay.promoPrice,
                     checkedSpecOriginalPrice: selectedPriceDisplay.originalPrice,
                     checkedSpecHasCouponPromo: selectedPriceDisplay.hasCouponPromo,
+                    checkedSpecShowOriginalPrice: selectedPriceDisplay.showOriginalPrice,
                     goodsNumber: checkedProduct.goods_number,
                     soldout: false
                 });
@@ -416,6 +629,7 @@ Page({
                     checkedSpecPromoPrice: defaultPriceDisplay.promoPrice,
                     checkedSpecOriginalPrice: defaultPriceDisplay.originalPrice,
                     checkedSpecHasCouponPromo: defaultPriceDisplay.hasCouponPromo,
+                    checkedSpecShowOriginalPrice: defaultPriceDisplay.showOriginalPrice,
                     soldout: true
                 });
             }
@@ -427,6 +641,7 @@ Page({
                 checkedSpecPromoPrice: defaultPriceDisplay.promoPrice,
                 checkedSpecOriginalPrice: defaultPriceDisplay.originalPrice,
                 checkedSpecHasCouponPromo: defaultPriceDisplay.hasCouponPromo,
+                checkedSpecShowOriginalPrice: defaultPriceDisplay.showOriginalPrice,
                 soldout: false
             });
         }

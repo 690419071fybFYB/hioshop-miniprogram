@@ -1,0 +1,37 @@
+<view class="container">
+  <view class="error-box" wx:if="{{hasError}}">
+    <text>{{errorMessage}}</text>
+    <button size="mini" bindtap="retryLoad">重试</button>
+  </view>
+
+  <view class="loading-box" wx:if="{{loading}}">拼团活动加载中...</view>
+
+  <block wx:if="{{!loading && list.length > 0}}">
+    <view class="card" wx:for="{{list}}" wx:key="id" data-item="{{item}}" bindtap="openDetail">
+      <image class="cover" src="{{item.listPicUrl}}" mode="aspectFill"></image>
+      <view class="content">
+        <view class="top-row">
+          <view class="name">{{item.name}}</view>
+          <view class="tag">{{item.tagText}}</view>
+        </view>
+        <view class="price-row">
+          <text class="price-main">¥{{item.groupPrice}}</text>
+          <text class="price-old" wx:if="{{item.retailPrice && item.retailPrice !== '0.00'}}">¥{{item.retailPrice}}</text>
+          <text class="group-size">{{item.groupSize}}人成团</text>
+        </view>
+        <view class="meta-row">
+          <text>{{item.countdownText}}</text>
+          <text>可参团 {{item.teamCount}} 个</text>
+        </view>
+        <view class="action-row">
+          <button class="btn btn-ghost" size="mini" catchtap="openGoods" data-goods-id="{{item.goodsId}}">查看商品</button>
+          <button class="btn" size="mini">查看拼团</button>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <view class="empty" wx:if="{{!loading && list.length === 0 && !hasError}}">
+    暂无可参与拼团
+  </view>
+</view>

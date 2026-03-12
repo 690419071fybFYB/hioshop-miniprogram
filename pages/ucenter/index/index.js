@@ -2,8 +2,6 @@ var util = require('../../../utils/util.js');
 var api = require('../../../config/api.js');
 const session = require('../../../utils/session.js');
 
-// TODO 订单显示数量在图标上
-
 const app = getApp()
 
 Page({
@@ -82,6 +80,12 @@ Page({
     if (!this.ensureProfileReady()) return;
     wx.navigateTo({
       url: '/pages/ucenter/coupon/index?skin=promo'
+    });
+  },
+  toGroupon: function () {
+    if (!this.ensureProfileReady()) return;
+    wx.navigateTo({
+      url: '/pages/ucenter/groupon/index'
     });
   },
   toInvite: function () {

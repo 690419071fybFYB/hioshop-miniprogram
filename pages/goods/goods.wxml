@@ -48,7 +48,7 @@
     <view class='price-info'>
         <view class="l">
             <view class="price-line">
-                <view class="old-price-inline" wx:if="{{goods.hasPromotion}}">
+                <view class="old-price-inline" wx:if="{{goods.showOriginalPrice}}">
                     <view class="sym">¥</view>
                     <view class="num">{{goods.displayOriginalPrice}}</view>
                 </view>
@@ -65,6 +65,27 @@
         <view class="r">
             <view class='stock'>库存{{goods.goods_number}}</view>
             <view class='sales'>已售{{goods.sell_volume}}份</view>
+        </view>
+    </view>
+    <view class="groupon-wrap" wx:if="{{grouponActivities.length > 0}}">
+        <view class="groupon-header">
+            <view class="title">拼团专区</view>
+            <view class="more" bindtap="goGrouponList">更多拼团</view>
+        </view>
+        <view class="groupon-card" wx:for="{{grouponActivities}}" wx:key="id">
+            <view class="groupon-main">
+                <view class="price-box">
+                    <view class="price">¥{{item.groupPrice}}</view>
+                    <view class="desc">{{item.groupSize}}人成团 · {{item.countdownText}}</view>
+                </view>
+                <button class="groupon-open-btn" data-activity-id="{{item.id}}" bindtap="goOpenGroupon">去开团</button>
+            </view>
+            <view class="team-list" wx:if="{{item.openTeams.length > 0}}">
+                <view class="team-item" wx:for="{{item.openTeams}}" wx:for-item="team" wx:key="id">
+                    <view class="team-desc">{{team.leaderName}}的团 · {{team.joinedSize}}/{{team.requiredSize}} · {{team.countdownText}}</view>
+                    <button class="groupon-join-btn" data-activity-id="{{item.id}}" data-team-id="{{team.id}}" bindtap="goJoinGroupon">去参团</button>
+                </view>
+            </view>
         </view>
     </view>
     <view class='section-nav' bindtap="switchAttrPop">
@@ -92,19 +113,18 @@
                 </view>
                 <view class="info">
                     <view class='price-range' wx:if="{{priceChecked == false}}">
-                        <!-- todo 原价不等于0的时候要补充 -->
                         <view class='retail-price'>
                             <view class='p-title'>零售价：</view>
                             <view class='g-price'>{{goods.displayPrice}}元</view>
                         </view>
-                        <view class='old-price' wx:if="{{goods.hasPromotion}}">原价：{{goods.displayOriginalPrice}}元</view>
+                        <view class='old-price' wx:if="{{goods.showOriginalPrice}}">原价：{{goods.displayOriginalPrice}}元</view>
                     </view>
                     <view class='price-range' wx:elif="{{priceChecked == true}}">
                         <view class='retail-price'>
                             <view class='p-title'>零售价：</view>
                             <view class='g-price'>{{checkedSpecPromoPrice}}元</view>
                         </view>
-                        <view class='old-price' wx:if="{{checkedSpecHasCouponPromo}}">原价：{{checkedSpecOriginalPrice}}元</view>
+                        <view class='old-price' wx:if="{{checkedSpecShowOriginalPrice}}">原价：{{checkedSpecOriginalPrice}}元</view>
                     </view>
                     <view class="a" wx:if="{{productList.length>0}}">{{tmpSpecText}}</view>
                 </view>
