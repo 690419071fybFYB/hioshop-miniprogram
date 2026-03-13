@@ -17,6 +17,7 @@
         "pages/ucenter/address/index",
         "pages/ucenter/address-detail/index",
         "pages/ucenter/index/index",
+        "pages/vip/index",
         "pages/ucenter/ad-message/index",
         "pages/ucenter/invite/index",
         "pages/ucenter/settings/index",

@@ -13,6 +13,7 @@ Page({
         goodsTotalPrice: 0.00, //商品总价
         freightPrice: 0.00, //快递费
         couponPrice: 0.00, //优惠券抵扣
+        vipDiscountPrice: 0.00, //会员优惠
         orderTotalPrice: 0.00, //订单总价
         actualPrice: 0.00, //实际需要支付的总价
         couponCandidates: [],
@@ -137,6 +138,7 @@ Page({
     applyCheckoutResponse(data) {
         const checkedGoodsList = this.mapPromotionDisplay(data.checkedGoodsList || []);
         const promotionCountdownTip = this.computePromotionCountdownTip(checkedGoodsList);
+        const vipDiscountPrice = Number(data.vipDiscountPrice || 0);
         const nextSelectedIds = this.data.isGroupon
             ? []
             : (data.selectedCoupons || []).map((item) => Number(item.user_coupon_id));
@@ -151,6 +153,7 @@ Page({
             addressId: addressId,
             freightPrice: data.freightPrice,
             couponPrice: this.data.isGroupon ? 0 : (data.couponPrice || 0),
+            vipDiscountPrice: Number.isFinite(vipDiscountPrice) ? vipDiscountPrice : 0,
             couponCandidates: this.data.isGroupon ? [] : (data.couponCandidates || []),
             selectedCoupons: this.data.isGroupon ? [] : (data.selectedCoupons || []),
             selectedUserCouponIds: nextSelectedIds,

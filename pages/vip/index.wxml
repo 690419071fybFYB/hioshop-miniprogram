@@ -1,0 +1,88 @@
+<view class="vip-page">
+    <view class="loading-text" wx:if="{{loading && plans.length == 0}}">会员信息加载中...</view>
+
+    <view class="error-card" wx:if="{{hasError}}">
+        <text>{{errorMessage}}</text>
+        <button size="mini" bindtap="retryLoad" class="retry-btn">重试</button>
+    </view>
+
+    <view class="hero-card">
+        <view class="hero-top">
+            <view class="hero-tabs">
+                <view class="hero-tab hero-tab-active">黄金会员</view>
+                <view class="hero-tab">卓越会员</view>
+            </view>
+            <view class="hero-status {{isVip ? 'hero-status-active' : ''}}">{{isVip ? '已开通' : '未开通'}}</view>
+        </view>
+        <view class="hero-title">黄金会员</view>
+        <view class="hero-save-line">
+            年最高可省
+            <text class="hero-save-amount">¥{{annualSaveText}}</text>
+        </view>
+        <view class="hero-expire" wx:if="{{expireTimeText}}">有效期至 {{expireTimeText}}</view>
+        <view class="hero-sub">{{statusText}}</view>
+        <view class="hero-badge">GOLD</view>
+    </view>
+
+    <view class="section-card rights-card">
+        <view class="section-title">会员尊享权益</view>
+        <view class="benefit-grid">
+            <view class="benefit-item" wx:for="{{benefitSummary}}" wx:key="index">
+                <view class="benefit-index">{{index + 1}}</view>
+                <view class="benefit-text">{{item}}</view>
+            </view>
+        </view>
+    </view>
+
+    <view class="section-card plans-card">
+        <view class="section-title">开通方案</view>
+        <scroll-view class="plan-scroll" scroll-x enable-flex>
+            <view class="plan-track">
+                <view
+                    class="plan-item {{selectedPlanId == item.planId ? 'plan-item-active' : ''}}"
+                    wx:for="{{plans}}"
+                    wx:key="planId"
+                    data-plan-id="{{item.planId}}"
+                    bindtap="selectPlan"
+                >
+                    <view class="plan-gift" wx:if="{{item.giftTagText}}">{{item.giftTagText}}</view>
+                    <view class="plan-tag">{{item.tag}}</view>
+                    <view class="plan-name">{{item.name}}</view>
+                    <view class="plan-price-line">
+                        <text class="plan-price-unit">¥</text>
+                        <text class="plan-price-value">{{item.priceText}}</text>
+                    </view>
+                    <view class="plan-monthly" wx:if="{{item.monthlyPriceText}}">约 ¥{{item.monthlyPriceText}} / 月</view>
+                    <view class="plan-desc">{{item.desc}}</view>
+                    <view class="plan-origin" wx:if="{{item.originPriceText}}">原价 ¥{{item.originPriceText}}</view>
+                </view>
+            </view>
+        </scroll-view>
+    </view>
+
+    <view class="section-card agreement-card">
+        <view class="agreement-main" bindtap="switchAgreement">
+            <view class="agreement-check {{agreementChecked ? 'agreement-check-on' : ''}}">
+                <text wx:if="{{agreementChecked}}" class="agreement-check-mark">✓</text>
+            </view>
+            <view class="agreement-content">
+                <view class="agreement-title">确认协议并开通</view>
+                <view class="agreement-text">{{agreementText || '支付即视为同意《会员服务协议》'}}</view>
+            </view>
+        </view>
+        <view class="agreement-tip">{{autoRenewTip}}</view>
+    </view>
+
+    <view class="bottom-action">
+        <view class="bottom-price">
+            <view class="bottom-plan">{{selectedPlanName || '请选择会员套餐'}}</view>
+            <view class="bottom-amount">¥{{selectedPlanPrice}}</view>
+        </view>
+        <button
+            class="bottom-submit"
+            bindtap="submitVip"
+            loading="{{submitting}}"
+            disabled="{{submitting || loading}}"
+        >{{submitButtonText}}</button>
+    </view>
+</view>

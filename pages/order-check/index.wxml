@@ -76,6 +76,13 @@
 				<view class="right-text tip-text">{{grouponTip}}</view>
 			</view>
 			<view class="row-box">
+				<view class="row-label">会员优惠</view>
+				<view class="right-text">
+					<text wx:if="{{vipDiscountPrice > 0}}">-¥{{vipDiscountPrice}}</text>
+					<text wx:else>暂无</text>
+				</view>
+			</view>
+			<view class="row-box">
 				<view class="row-label">促销优惠</view>
 				<view class="right-text">
 					<text wx:if="{{promotionPrice > 0}}">-¥{{promotionPrice}}</text>

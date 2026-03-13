@@ -82,6 +82,12 @@ Page({
       url: '/pages/ucenter/coupon/index?skin=promo'
     });
   },
+  toVip: function () {
+    if (!this.ensureProfileReady()) return;
+    wx.navigateTo({
+      url: '/pages/vip/index'
+    });
+  },
   toGroupon: function () {
     if (!this.ensureProfileReady()) return;
     wx.navigateTo({

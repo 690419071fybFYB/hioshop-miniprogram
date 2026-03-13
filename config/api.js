@@ -209,6 +209,16 @@ function applyApiRoot(nextRoot) {
   api.CouponMy = apiRootUrl + 'coupon/my';
   api.CouponPreview = apiRootUrl + 'coupon/preview';
 
+  // VIP
+  api.VipHome = apiRootUrl + 'vip/home';
+  api.VipPlans = apiRootUrl + 'vip/plans';
+  api.VipStatus = apiRootUrl + 'vip/status';
+  api.VipCheckout = apiRootUrl + 'vip/checkout';
+  api.VipSubmit = apiRootUrl + 'vip/submit';
+  api.VipRefundApply = apiRootUrl + 'vip/refundApply';
+  api.VipAutoRenewSign = apiRootUrl + 'vip/autorenewSign';
+  api.VipAutoRenewCancel = apiRootUrl + 'vip/autorenewCancel';
+
   // 足迹
   api.FootprintList = apiRootUrl + 'footprint/list';
   api.FootprintDelete = apiRootUrl + 'footprint/delete';

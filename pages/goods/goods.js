@@ -19,6 +19,9 @@ Page({
         checkedSpecOriginalPrice: 0,
         checkedSpecHasCouponPromo: false,
         checkedSpecShowOriginalPrice: false,
+        checkedSpecHasVipPrice: false,
+        checkedSpecVipPrice: '',
+        checkedSpecVipPriceActive: false,
         number: 1,
         checkedSpecText: '',
         tmpSpecText: '请选择规格和数量',
@@ -60,6 +63,25 @@ Page({
         const pad = (n) => String(n).padStart(2, '0');
         return `剩余${pad(hour)}:${pad(minute)}:${pad(second)}`;
     },
+    resolveVipPriceDisplay(vipPrice) {
+        if (vipPrice === '' || vipPrice === null || typeof vipPrice === 'undefined') {
+            return {
+                hasVipPrice: false,
+                vipPriceDisplay: ''
+            };
+        }
+        const vipPriceNumber = Number(vipPrice);
+        if (!Number.isFinite(vipPriceNumber)) {
+            return {
+                hasVipPrice: false,
+                vipPriceDisplay: ''
+            };
+        }
+        return {
+            hasVipPrice: true,
+            vipPriceDisplay: vipPriceNumber.toFixed(2)
+        };
+    },
     mapPromotionDisplay(source) {
         const item = Object.assign({}, source || {});
         const hasPromotion = Number(item.has_promotion || 0) === 1;
@@ -68,6 +90,8 @@ Page({
         const displayOriginalPrice = hasPromotion ? (item.promotion_original_price || item.original_price || retailPrice) : retailPrice;
         const displayPromotionTag = hasPromotion ? (item.promotion_tag || item.promo_tag || '') : '';
         const promotionEndAt = Number(item.promotion_end_at || 0);
+        const vipMeta = this.resolveVipPriceDisplay(item.vip_price);
+        const isVipPriceActive = Number(item.is_vip_price_active || 0) === 1;
         const originalPriceNumber = Number(displayOriginalPrice || 0);
         const currentPriceNumber = Number(displayPrice || 0);
         const showOriginalPrice = hasPromotion &&
@@ -82,7 +106,10 @@ Page({
             showOriginalPrice,
             displayPromotionTag,
             promotionEndAt,
-            promotionCountdownText: hasPromotion ? this.formatPromotionCountdown(promotionEndAt) : ''
+            promotionCountdownText: hasPromotion ? this.formatPromotionCountdown(promotionEndAt) : '',
+            hasVipPrice: vipMeta.hasVipPrice,
+            vipPriceDisplay: vipMeta.vipPriceDisplay,
+            isVipPriceActive
         });
     },
     getPriceDisplay(source) {
@@ -91,7 +118,10 @@ Page({
             hasCouponPromo: !!item.hasPromotion,
             promoPrice: item.displayPrice,
             originalPrice: item.displayOriginalPrice,
-            showOriginalPrice: !!item.showOriginalPrice
+            showOriginalPrice: !!item.showOriginalPrice,
+            hasVipPrice: !!item.hasVipPrice,
+            vipPrice: item.vipPriceDisplay,
+            vipPriceActive: !!item.isVipPriceActive
         };
     },
     hasPromotionInGoods(goods, productList) {
@@ -443,6 +473,9 @@ Page({
                     checkedSpecOriginalPrice: defaultPriceDisplay.originalPrice,
                     checkedSpecHasCouponPromo: defaultPriceDisplay.hasCouponPromo,
                     checkedSpecShowOriginalPrice: defaultPriceDisplay.showOriginalPrice,
+                    checkedSpecHasVipPrice: defaultPriceDisplay.hasVipPrice,
+                    checkedSpecVipPrice: defaultPriceDisplay.vipPrice,
+                    checkedSpecVipPriceActive: defaultPriceDisplay.vipPriceActive,
                     galleryImages: galleryImages,
                     loading:1,
                     hasError: false,
@@ -600,6 +633,9 @@ Page({
                     checkedSpecOriginalPrice: selectedPriceDisplay.originalPrice,
                     checkedSpecHasCouponPromo: selectedPriceDisplay.hasCouponPromo,
                     checkedSpecShowOriginalPrice: selectedPriceDisplay.showOriginalPrice,
+                    checkedSpecHasVipPrice: selectedPriceDisplay.hasVipPrice,
+                    checkedSpecVipPrice: selectedPriceDisplay.vipPrice,
+                    checkedSpecVipPriceActive: selectedPriceDisplay.vipPriceActive,
                     goodsNumber: checkedProduct.goods_number,
                     soldout: true
                 });
@@ -616,6 +652,9 @@ Page({
                     checkedSpecOriginalPrice: selectedPriceDisplay.originalPrice,
                     checkedSpecHasCouponPromo: selectedPriceDisplay.hasCouponPromo,
                     checkedSpecShowOriginalPrice: selectedPriceDisplay.showOriginalPrice,
+                    checkedSpecHasVipPrice: selectedPriceDisplay.hasVipPrice,
+                    checkedSpecVipPrice: selectedPriceDisplay.vipPrice,
+                    checkedSpecVipPriceActive: selectedPriceDisplay.vipPriceActive,
                     goodsNumber: checkedProduct.goods_number,
                     soldout: false
                 });
@@ -630,6 +669,9 @@ Page({
                     checkedSpecOriginalPrice: defaultPriceDisplay.originalPrice,
                     checkedSpecHasCouponPromo: defaultPriceDisplay.hasCouponPromo,
                     checkedSpecShowOriginalPrice: defaultPriceDisplay.showOriginalPrice,
+                    checkedSpecHasVipPrice: defaultPriceDisplay.hasVipPrice,
+                    checkedSpecVipPrice: defaultPriceDisplay.vipPrice,
+                    checkedSpecVipPriceActive: defaultPriceDisplay.vipPriceActive,
                     soldout: true
                 });
             }
@@ -642,6 +684,9 @@ Page({
                 checkedSpecOriginalPrice: defaultPriceDisplay.originalPrice,
                 checkedSpecHasCouponPromo: defaultPriceDisplay.hasCouponPromo,
                 checkedSpecShowOriginalPrice: defaultPriceDisplay.showOriginalPrice,
+                checkedSpecHasVipPrice: defaultPriceDisplay.hasVipPrice,
+                checkedSpecVipPrice: defaultPriceDisplay.vipPrice,
+                checkedSpecVipPriceActive: defaultPriceDisplay.vipPriceActive,
                 soldout: false
             });
         }

@@ -61,6 +61,10 @@
             <view class="promo-countdown" wx:if="{{goods.hasPromotion && goods.promotionCountdownText}}">
                 {{goods.promotionCountdownText}}
             </view>
+            <view class="promo-countdown" wx:if="{{goods.hasVipPrice}}">
+                <text>会员价¥{{goods.vipPriceDisplay}}</text>
+                <text wx:if="{{!goods.isVipPriceActive}}" style="margin-left: 12rpx; color: #999;">开通会员享受</text>
+            </view>
         </view>
         <view class="r">
             <view class='stock'>库存{{goods.goods_number}}</view>
@@ -118,6 +122,10 @@
                             <view class='g-price'>{{goods.displayPrice}}元</view>
                         </view>
                         <view class='old-price' wx:if="{{goods.showOriginalPrice}}">原价：{{goods.displayOriginalPrice}}元</view>
+                        <view class='old-price' wx:if="{{goods.hasVipPrice}}">
+                            会员价：{{goods.vipPriceDisplay}}元
+                            <text wx:if="{{!goods.isVipPriceActive}}" style="color: #999;">（开通会员享受）</text>
+                        </view>
                     </view>
                     <view class='price-range' wx:elif="{{priceChecked == true}}">
                         <view class='retail-price'>
@@ -125,6 +133,10 @@
                             <view class='g-price'>{{checkedSpecPromoPrice}}元</view>
                         </view>
                         <view class='old-price' wx:if="{{checkedSpecShowOriginalPrice}}">原价：{{checkedSpecOriginalPrice}}元</view>
+                        <view class='old-price' wx:if="{{checkedSpecHasVipPrice}}">
+                            会员价：{{checkedSpecVipPrice}}元
+                            <text wx:if="{{!checkedSpecVipPriceActive}}" style="color: #999;">（开通会员享受）</text>
+                        </view>
                     </view>
                     <view class="a" wx:if="{{productList.length>0}}">{{tmpSpecText}}</view>
                 </view>
