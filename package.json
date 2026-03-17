@@ -18,8 +18,9 @@
     "test:groupon-entry": "node ../testing/scripts/miniprogram_groupon_entry_regression.js",
     "test:groupon-checkout": "node ../testing/scripts/miniprogram_groupon_checkout_regression.js",
     "test:vip-module": "node ../testing/scripts/miniprogram_vip_module_regression.js",
+    "test:vip-plan-name": "node ../testing/scripts/miniprogram_vip_plan_name_regression.js",
     "test:security-regression": "npm run test:request-smoke && npm run test:api-root-guard && npm run test:auth-refresh-race",
-    "test:pr-gate": "npm run lint && npm run test:syntax && npm run test:security-regression && npm run test:checkout-resilience && npm run test:pay-resilience && npm run test:order-list-pagination && npm run test:coupon-unified && npm run test:coupon-redirect && npm run test:goods-price-display && npm run test:groupon-entry && npm run test:groupon-checkout && npm run test:vip-module"
+    "test:pr-gate": "npm run lint && npm run test:syntax && npm run test:security-regression && npm run test:checkout-resilience && npm run test:pay-resilience && npm run test:order-list-pagination && npm run test:coupon-unified && npm run test:coupon-redirect && npm run test:goods-price-display && npm run test:groupon-entry && npm run test:groupon-checkout && npm run test:vip-module && npm run test:vip-plan-name"
   },
   "dependencies": {
     "@vant/weapp": "^1.11.7"

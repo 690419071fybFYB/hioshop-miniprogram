@@ -85,6 +85,59 @@ Page({
         }).filter((item) => !!item);
         return rows.length > 0 ? rows : DEFAULT_BENEFITS;
     },
+    hasCjkText(value) {
+        return /[\u3400-\u9FFF]/.test(String(value || ''));
+    },
+    isLikelyCorruptedPlanName(value) {
+        const raw = String(value || '').trim();
+        if (!raw) {
+            return true;
+        }
+        if (/\?{2,}/.test(raw) || /�/.test(raw)) {
+            return true;
+        }
+        if (/[\x00-\x1F]/.test(raw)) {
+            return true;
+        }
+        if (this.hasCjkText(raw)) {
+            return false;
+        }
+        if (/[ÃÂÐÑ]/.test(raw)) {
+            return true;
+        }
+        return false;
+    },
+    repairUtf8MojibakeText(value) {
+        const raw = String(value || '').trim();
+        if (!raw) {
+            return raw;
+        }
+        if (this.hasCjkText(raw)) {
+            return raw;
+        }
+        if (!/[\u00C0-\u00FF]/.test(raw)) {
+            return raw;
+        }
+        try {
+            const decoded = decodeURIComponent(escape(raw));
+            if (decoded && this.hasCjkText(decoded)) {
+                return decoded;
+            }
+        } catch (err) {
+            // noop
+        }
+        if (typeof Buffer !== 'undefined') {
+            try {
+                const decoded = Buffer.from(raw, 'latin1').toString('utf8').trim();
+                if (decoded && this.hasCjkText(decoded)) {
+                    return decoded;
+                }
+            } catch (err) {
+                // noop
+            }
+        }
+        return raw;
+    },
     normalizePlans(list) {
         const sourceList = Array.isArray(list) && list.length > 0 ? list : DEFAULT_PLAN_ROWS;
         return sourceList.map((item, index) => {
@@ -94,9 +147,13 @@ Page({
             if (!Number.isFinite(planId) || planId <= 0) {
                 planId = index + 1;
             }
-            const name = source.name || source.plan_name || source.title || (index === 0 ? '黄金会员年卡' : '黄金会员季卡');
+            const rawName = source.name || source.plan_name || source.title || '';
             const dayCount = toInt(source.days || source.day_count || source.duration_days || 0, 0);
-            const isYearCard = /年/.test(name) || dayCount >= 300 || index === 0;
+            const repairedName = this.repairUtf8MojibakeText(rawName);
+            const normalizedName = this.isLikelyCorruptedPlanName(repairedName) ? '' : repairedName;
+            const isYearCard = /年/.test(normalizedName || '') || dayCount >= 300 || index === 0;
+            const fallbackName = isYearCard ? '黄金会员年卡' : '黄金会员季卡';
+            const name = normalizedName || fallbackName;
             const fallbackPrice = isYearCard ? 69 : 25;
             const priceText = formatMoney(source.price || source.amount || source.pay_price || source.sale_price, fallbackPrice);
             const originPriceText = formatMoney(source.original_price || source.origin_price || source.market_price, '');
