@@ -5,7 +5,6 @@
 + 服务端api基于Ｎode.js+ThinkJS+MySQL
 
 ### 基于海风小店开发上线的小程序
-<img width="200" src="https://raw.githubusercontent.com/iamdarcy/hiolabs/master/git-images/mwyx.jpg">
  
 <a target="_blank" href="https://www.aliyun.com/?source=5176.11533457&userCode=zm04niet"><img width="1400" src="https://raw.githubusercontent.com/iamdarcy/hiolabs/master/git-images/aliyun.jpg"></a>
 阿里云主机：低至2折 <a target="_blank" href="https://www.aliyun.com/?source=5176.11533457&userCode=zm04niet">立即去看看</a>
